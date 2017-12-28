@@ -1,4 +1,4 @@
-baseURL = "http://blog.baens.net/"
+baseURL = "https://blog.baens.net/"
 languageCode = "en-us"
 title = "Erik's Ramblings"
 theme = "pickles"
