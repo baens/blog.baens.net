@@ -3,17 +3,17 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>http://blog.baens.net/categories/</loc>
+    <loc>https://blog.baens.net/categories/</loc>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://blog.baens.net/</loc>
+    <loc>https://blog.baens.net/</loc>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://blog.baens.net/tags/</loc>
+    <loc>https://blog.baens.net/tags/</loc>
     <priority>0</priority>
   </url>
   
