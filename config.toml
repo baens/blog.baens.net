@@ -2,3 +2,8 @@ baseURL = "https://blog.baens.net/"
 languageCode = "en-us"
 title = "Erik's Ramblings"
 theme = "pickles"
+
+[params]
+    ga_api_key = "UA-110426083-2"
+    twitter = "baensele"
+    author = "Erik Lindblom"
