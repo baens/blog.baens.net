@@ -2,8 +2,13 @@ baseURL = "https://blog.baens.net/"
 languageCode = "en-us"
 title = "Erik's Ramblings"
 theme = "pickles"
+pygmentsCodeFences = true
 
 [params]
     ga_api_key = "UA-110426083-2"
     twitter = "baensele"
     author = "Erik Lindblom"
+    authorwebsite = "https://baens.net"
+    contact = "mailto:erik@baens.net"
+    bio = "A software developer trying to solve the problems with code."
+    github = "baensele"
