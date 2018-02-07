@@ -11,7 +11,9 @@ Apache (httpd): 2.4.6 (67.el7.centos.6)
 PHP: 5.4.16 (43.el7_4)
 
 # Commands
-sudo yum install httpd php php-gd php-mbstring 
+sudo yum install httpd php php-gd php-mbstring php-pdo
+
+https://www.vultr.com/docs/how-to-install-ffmpeg-on-centos 
 
 # Verify Apache and PHP is working
 Start apache service: sudo systemctl start httpd
@@ -86,3 +88,5 @@ pip install psutil monotonic ujson
 
 /opt/webpagespeedtest/wptagent
 cp browsers.ini.sample browsers.ini
+
+python wptagent.py -vvvv --location ostk --server "http://watchtower-speedtest.fedbase.dev.ostk.com/work/" --name ostk_wptdriver
