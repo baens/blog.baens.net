@@ -1,5 +1,5 @@
 ---
-title: "Setting up Kotlin the hard way"
+title: "Step-by-step: Kotlin and Docker"
 date: 2018-02-05
 ---
 
@@ -10,15 +10,17 @@ So with that in mind, let's get a HTTP REST service, written in Kotlin and Jerse
 
 Repo: https://bitbucket.org/baens/kotlin-the-hard-way
 
+## Step 0: Prerequisites
+
+* Java (JDK 1.8.0_144)
+* Gradle (to create the initial wrapper)
+* Docker (17.12.0-ce-mac49 (21995))
+
 ## Step 1: Gradle
 
-The very first thing we are going to need is Gradle. This is what we are going to use as our build toolchain. I'm not going to elierabte much more on what gradle can and can't do so go visit the links if you want that.
+For this step we will get a gradle wrapper setup and working inside of the repository
 
-The end goal will be to have a gradle wrapper installed and working.
 
-Download a gradle distrubtion from here: https://services.gradle.org/distributions/ (pick on that says `-bin`)
-
-Or use your favorite package manager to download it.
 
 Run the following:
 
@@ -39,7 +41,6 @@ Revision:     77d0ec90636f43669dc794ca17ef80dd65457bec
 Groovy:       2.4.12
 Ant:          Apache Ant(TM) version 1.9.9 compiled on February 2 2017
 JVM:          1.8.0_144 (Oracle Corporation 25.144-b01)
-OS:           Mac OS X 10.13.3 x86_64
 ```
 
 ## Step 2: Kotlin Hello World locally
