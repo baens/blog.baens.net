@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://blog.baens.net/posts/step-by-step-kotlin/</loc>
+    <lastmod>2018-02-11T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://blog.baens.net/posts/step-by-step-series/</loc>
     <lastmod>2018-02-11T00:00:00+00:00</lastmod>
   </url>
