@@ -1,6 +1,6 @@
 ---
 title: "Blog Series: The step-by-step way tutorial"
-date: 2018-02-011
+date: 2018-02-11
 series: ["Step-by-Step"]
 ---
 
