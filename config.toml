@@ -12,3 +12,7 @@ pygmentsCodeFences = true
     contact = "mailto:erik@baens.net"
     bio = "A software developer trying to solve the problems with code."
     github = "baens"
+
+[taxonomies]
+  tag = "tags"
+  series = "series"
