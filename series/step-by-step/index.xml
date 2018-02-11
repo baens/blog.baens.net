@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Step by Step on Erik&#39;s Ramblings</title>
+    <link>https://blog.baens.net/series/step-by-step/</link>
+    <description>Recent content in Step by Step on Erik&#39;s Ramblings</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 11 Feb 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://blog.baens.net/series/step-by-step/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Blog Series: The step-by-step way tutorial</title>
+      <link>https://blog.baens.net/posts/step-by-step-series/</link>
+      <pubDate>Sun, 11 Feb 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.baens.net/posts/step-by-step-series/</guid>
+      <description>Over the course of my development career, I&amp;rsquo;ve always tend to enjoy tutorials or explanations that guide you through concepts or frameworks step by step. Ones that have a goal and slowly work through things step by step, building upon itself to reach the final destination. All while explaining why this piece fits there or pros and cons of this piece over here.
+These trainings are usually harder to come by because everyone is looking for a quick fix, or tool that does it for you automagically.</description>
+    </item>
+    
+  </channel>
+</rss>
