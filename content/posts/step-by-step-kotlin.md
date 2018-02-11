@@ -105,14 +105,13 @@ jar {
 
 Let's go through some of those lines again and draw out whats going on.
 
-**Lines 6 - 11**: These are just plugin lines. Gradle has a couple of ways to define plugins. One is called the `plugin DSL` the other is called `script plugin`. I'm not going to try and explain the different here, please go read [the plugins doc](https://docs.gradle.org/current/userguide/plugins.html) to get a better idea. One plugin to note is the `shadow` plugin. This one is to create Fat Jars, or in other words, jars that contain every dependency that is needed to run. Instead of having to make sure things are on your classpath or some other nonsense, I can just give you this jar file, and it will run. This will make it running inside of docker easier.
+**Lines 6 - 11**: These are just plugin lines. Gradle has a couple of ways to define plugins. One is called the `plugin DSL` the other is called `script plugin`. I'm not going to try and explain the difference here, please go read [the plugins doc](https://docs.gradle.org/current/userguide/plugins.html) to get a better idea. One plugin to note is the `shadow` plugin. This one is to create Fat Jars, or in other words, jars that contain every dependency that is needed to run. Instead of having to make sure things are on your classpath or some other nonsense, I can just give you this jar file, and it will run. This will make it running inside of docker easier.
 
 **Line 24**: Here we are defining the kotlin standard for Java 8. This is newer in Kotlin 1.1 and you can read about it [here](https://kotlinlang.org/docs/reference/using-gradle.html#configuring-dependencies). There are a few ways to do this, but this was specific to what was needed for Java 8. I've run into issues using the backwards compatible one and try and use the Java 8 one so that the newer features actually work 
 
-**Lines 32 - 34**: This is entirely optional, but this is how I prefer to setup my projects. I hate the default of `src/main/java` or something silly like that. That is 3 folders I have to start under just to get to my source. PLUS then I have to navigate down through the folders of my namespace. Rarely do projects have to have all of these different types of languages so you can eliminate the `java` folder. And 2nd, having to maintain a `test` source folder and a `main` source folder is the PITA. I much prefer to have my tests and source side by side. It just makes it easier to find my tests that are associated with each file.  Again, this is all personal choice but I've been doing this long enough to feel strongly about this one now.
+**Lines 32 - 34**: This is entirely optional, but this is how I prefer to setup my projects. I hate the default of `src/main/java` or something silly like that. That is 3 folders I have to navigate just to get to my source. PLUS then I have to navigate down through the folders of my namespace. Rarely do projects have to have all of these different types of languages so you can eliminate the `java` folder at the very least. And 2nd, having to maintain a `test` source folder and a `main` source folder is the PITA. I much prefer to have my tests and source side by side. It just makes it easier to find my tests that are associated with each file.  Again, this is all personal choice but I've been doing this long enough to feel strongly about this one now. Give me one folder with all my source and don't make me nest things that I don't want too!
 
 **Line 37**: This is a simple line but I did want to call out something. `MainKt` is special because it will be the name of the file with `kt` at the end of it. I will explain a little bit more when we get to that source. But this is a convention Kotlin has when there is just a method inside of the file. It will automatically enclose that method in a class for the JVM to use. So be careful about that `kt`. 
-
  
 Now for the actual, very simple, hello world code.
 
@@ -164,7 +163,7 @@ EXPOSE 8080
 CMD ["java","-jar","run.jar"]
 {{</ highlight >}}
 
-**Line 3 - 9**: This is the "builder" section. This is one docker instance.
+**Line 3 - 9**: This is the "builder" section.
 
 **Line 9 - 14**: This it the section that will be actually running.
 
