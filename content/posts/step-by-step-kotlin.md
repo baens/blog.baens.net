@@ -1,14 +1,13 @@
 ---
 title: "Step-by-step: Kotlin and Docker"
-date: 2018-02-05
+date: 2018-02-11
 ---
 
-This is part of a series of blog posts that I've always wanted todo. Read about them here.
+This is part of a series of blog posts that I've always wanted todo. [Read about them here](https://blog.baens.net/posts/step-by-step-series/).
 
 For this step-by-step guide let's do something basic and get kotlin compiling and running inside a docker container.
 
-
-The companion repository is here: https://github.com/baens/blog-step-by-step-kotlin
+[The companion repository is here]( https://github.com/baens/blog-step-by-step-kotlin).
 
 ## Step 0: Prerequisites
 
@@ -174,4 +173,8 @@ The 2nd part is what is actually running. The `COPY --from=BUILD` is the magic t
 
 I'm not going to go too much of what exactly docker is doing but do want to point out a couple of quick things. We basically do a copy, setup what is the working directory (think `cd` if you were using command line), then do the work or run.
 
-So if you want to actually run and build this you would run `docker build -t kotlin . && docker run kotlin`.
+Run this and the image will build and run:
+
+```shell
+docker build -t kotlin . && docker run kotlin
+```
