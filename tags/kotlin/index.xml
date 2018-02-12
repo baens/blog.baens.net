@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Kotlin on Erik&#39;s Ramblings</title>
+    <link>https://blog.baens.net/tags/kotlin/</link>
+    <description>Recent content in Kotlin on Erik&#39;s Ramblings</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 11 Feb 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://blog.baens.net/tags/kotlin/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Step-by-step: Kotlin and Docker</title>
+      <link>https://blog.baens.net/posts/step-by-step-kotlin/</link>
+      <pubDate>Sun, 11 Feb 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.baens.net/posts/step-by-step-kotlin/</guid>
+      <description>This is part of a series of blog posts that I&amp;rsquo;ve always wanted todo. Read about them here.
+For this step-by-step guide let&amp;rsquo;s do something basic and get kotlin compiling and running inside a docker container.
+The companion repository is here.
+Step 0: Prerequisites I am going to assume you have the following installed and already running. We will be using the local gradle wrapper instance after the initial setup, but you do need it for the initial creation.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -24,6 +24,12 @@
   </url>
   
   <url>
+    <loc>https://blog.baens.net/tags/kotlin/</loc>
+    <lastmod>2018-02-11T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://blog.baens.net/posts/</loc>
     <lastmod>2018-02-11T00:00:00+00:00</lastmod>
     <priority>0</priority>
@@ -42,6 +48,7 @@
   
   <url>
     <loc>https://blog.baens.net/tags/</loc>
+    <lastmod>2018-02-11T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
