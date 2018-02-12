@@ -1,7 +1,7 @@
 ---
 title: "Blog Series: The step-by-step way tutorial"
 date: 2018-02-11
-series: ["Step-by-Step"]
+series: ["step-by-step"]
 ---
 
 ![step-by-step](/images/step-by-step.jpeg)
