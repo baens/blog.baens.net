@@ -2,6 +2,8 @@
 title: "Step-by-step: Kotlin and Docker"
 date: 2018-02-11
 weight: 2
+series: ["step-by-step"]
+tags: ["kotlin"]
 ---
 
 This is part of a series of blog posts that I've always wanted todo. [Read about them here](https://blog.baens.net/posts/step-by-step-series/).
