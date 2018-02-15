@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.36" /><link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600" rel="stylesheet">
+  <meta name="generator" content="Hugo 0.36.1" /><link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600" rel="stylesheet">
   <link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
   
@@ -84,7 +84,7 @@
 <li>Docker (17.12.0-ce-mac49 (21995))</li>
 </ul>
 
-<h2 id="step-1-gradle-https-github-com-baens-blog-step-by-step-kotlin-commit-7572d1f5f186a3d3345e70f0935bd4be8d3badb1"><a href="https://github.com/baens/blog-step-by-step-kotlin/commit/7572d1f5f186a3d3345e70f0935bd4be8d3badb1">Step 1: Gradle</a></h2>
+<h2 id="step-1-gradle-https-github-com-baens-blog-step-by-step-kotlin-commit-6ed247244a23eae991693b4a512cda2521892c9c"><a href="https://github.com/baens/blog-step-by-step-kotlin/commit/6ed247244a23eae991693b4a512cda2521892c9c">Step 1: Gradle</a></h2>
 
 <p>The goal of this step will be to get a gradle wrapper up and running so that we can lock in the gradle version for everyone that will be using this repository.</p>
 
@@ -110,7 +110,7 @@ JVM:          1.8.0_144 (Oracle Corporation 25.144-b01)
 
 <p>That&rsquo;s it! You can double check that commit that I have associated with this step to see what I add to a git repository for this but this really is an easy step.</p>
 
-<h2 id="step-2-kotlin-hello-world-locally-https-github-com-baens-blog-step-by-step-kotlin-commit-0071055905e749427dc610e8f34000cd746458de"><a href="https://github.com/baens/blog-step-by-step-kotlin/commit/0071055905e749427dc610e8f34000cd746458de">Step 2: Kotlin Hello World locally</a></h2>
+<h2 id="step-2-kotlin-hello-world-locally-https-github-com-baens-blog-step-by-step-kotlin-commit-46304a14b7d74554775695ed3edc91a1d197e3e7"><a href="https://github.com/baens/blog-step-by-step-kotlin/commit/46304a14b7d74554775695ed3edc91a1d197e3e7">Step 2: Kotlin Hello World locally</a></h2>
 
 <p>Our end goal for this step will be to make it print &ldquo;Hello World&rdquo; from the <code>./gradlew run</code> command.</p>
 
@@ -200,7 +200,9 @@ BUILD SUCCESSFUL in 5s
 2 actionable tasks: 2 executed
 </code></pre>
 
-<h2 id="step-3-kotlin-hello-world-inside-docker-https-github-com-baens-blog-step-by-step-kotlin-commit-77f3f0add270a086ac1fd46f673db74d1dbd7012"><a href="https://github.com/baens/blog-step-by-step-kotlin/commit/77f3f0add270a086ac1fd46f673db74d1dbd7012">Step 3: Kotlin hello world inside docker</a></h2>
+<h2 id="step-3-kotlin-hello-world-inside-docker-https-github-com-baens-blog-step-by-step-kotlin-commit-8c781f7d5180ac25542fbf707e2d1746debcebc1"><a href="https://github.com/baens/blog-step-by-step-kotlin/commit/8c781f7d5180ac25542fbf707e2d1746debcebc1">Step 3: Kotlin hello world inside docker</a></h2>
+
+<p><strong>Update as of 2018-02-15</strong>: Thammachart Chinvarapon was gracious enough to point out that I was using the wrong Java docker container. I corrected this and moved it to the openjdk container. Thanks Thammachart!</p>
 
 <p>The next step will be to run this inside of a docker container. While this would be fairly straight forward, I want to demonstrate how to separate your build docker image from your running docker image. While this adds a little bit of complexity, this will actually be more like how you really use these kind of things.</p>
 
@@ -209,22 +211,20 @@ BUILD SUCCESSFUL in 5s
 <p><strong>Dockerfile</strong>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:100%;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker" data-lang="docker"><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 1</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 2</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 3</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 4</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 5</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 6</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 7</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 8</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 9</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">10</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">11</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">12</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">13</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">14</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">15</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">16</span></code></pre></td>
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker" data-lang="docker"><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 1</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 2</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 3</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 4</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 5</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 6</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 7</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 8</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79"> 9</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">10</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">11</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">12</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">13</span><span style="margin-right:0.4em;padding:00.4em00.4em;display:block;color:#7c7c79">14</span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker" data-lang="docker">ARG VERSION<span style="color:#f92672">=</span>8u111<span style="color:#960050;background-color:#1e0010">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker" data-lang="docker">ARG VERSION<span style="color:#f92672">=</span>8u151<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> java:${VERSION}-jdk as BUILD</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> openjdk:${VERSION}-jdk as BUILD</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>COPY . /src<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> /src</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> ./gradlew --no-daemon shadowJar<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> java:${VERSION}-jre</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> openjdk:${VERSION}-jre</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>COPY --from<span style="color:#f92672">=</span>BUILD /src/build/libs/step-by-step-kotlin-all.jar /bin/runner/run.jar<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> /bin/runner</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">EXPOSE</span><span style="color:#e6db74"> 8080</span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">CMD</span><span style="color:#e6db74"> [&#34;java&#34;,&#34;-jar&#34;,&#34;run.jar&#34;]</span></code></pre></td></tr></table>
 </div>
