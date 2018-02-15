@@ -22,7 +22,7 @@ The other one I am going to assume is having a running docker instance.
 * Gradle (to create the initial wrapper)
 * Docker (17.12.0-ce-mac49 (21995))
 
-## [Step 1: Gradle](https://github.com/baens/blog-step-by-step-kotlin/commit/7572d1f5f186a3d3345e70f0935bd4be8d3badb1)
+## [Step 1: Gradle](https://github.com/baens/blog-step-by-step-kotlin/commit/6ed247244a23eae991693b4a512cda2521892c9c)
 
 The goal of this step will be to get a gradle wrapper up and running so that we can lock in the gradle version for everyone that will be using this repository. 
 
@@ -49,7 +49,7 @@ JVM:          1.8.0_144 (Oracle Corporation 25.144-b01)
 
 That's it! You can double check that commit that I have associated with this step to see what I add to a git repository for this but this really is an easy step. 
 
-## [Step 2: Kotlin Hello World locally](https://github.com/baens/blog-step-by-step-kotlin/commit/0071055905e749427dc610e8f34000cd746458de)
+## [Step 2: Kotlin Hello World locally](https://github.com/baens/blog-step-by-step-kotlin/commit/46304a14b7d74554775695ed3edc91a1d197e3e7)
 
 Our end goal for this step will be to make it print "Hello World" from the `./gradlew run` command.
 
@@ -139,7 +139,9 @@ BUILD SUCCESSFUL in 5s
 2 actionable tasks: 2 executed
 ```
 
-## [Step 3: Kotlin hello world inside docker](https://github.com/baens/blog-step-by-step-kotlin/commit/77f3f0add270a086ac1fd46f673db74d1dbd7012)
+## [Step 3: Kotlin hello world inside docker](https://github.com/baens/blog-step-by-step-kotlin/commit/8c781f7d5180ac25542fbf707e2d1746debcebc1)
+
+**Update as of 2018-02-15**: Thammachart Chinvarapon was gracious enough to point out that I was using the wrong Java docker container. I corrected this and moved it to the openjdk container. Thanks Thammachart!
 
 The next step will be to run this inside of a docker container. While this would be fairly straight forward, I want to demonstrate how to separate your build docker image from your running docker image. While this adds a little bit of complexity, this will actually be more like how you really use these kind of things.
 
@@ -147,20 +149,18 @@ Since we have everything working, we just need to get a Dockerfile created and r
 
 **Dockerfile**
 {{< highlight docker "linenos=table" >}}
-ARG VERSION=8u111
+ARG VERSION=8u151
 
-FROM java:${VERSION}-jdk as BUILD
+FROM openjdk:${VERSION}-jdk as BUILD
 
 COPY . /src
 WORKDIR /src
 RUN ./gradlew --no-daemon shadowJar
 
-FROM java:${VERSION}-jre
+FROM openjdk:${VERSION}-jre
 
 COPY --from=BUILD /src/build/libs/step-by-step-kotlin-all.jar /bin/runner/run.jar
 WORKDIR /bin/runner
-
-EXPOSE 8080
 
 CMD ["java","-jar","run.jar"]
 {{</ highlight >}}
