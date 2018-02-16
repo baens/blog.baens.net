@@ -79,6 +79,16 @@ run {
 
 **Line 8 - 11**: This is how we make `./gradlew run` work. The `standardInput` we set to the normal `System.in` (it defaults to an empty set which breaks things). Then we setup the environment variables with the `environment` configuration.
 
+We need to add a way for the port to be exposed by Docker to the outside world. Since we are binding on port 8080 we need to have that exposed as well. So in the *Dockerfile* we will add one little line before the CMD statement.
+
+**Dockerfile (only parts)**
+{{< highlight gradle "linenos=table" >}}
+...
+EXPOSE 8080
+
+CMD ["java","-jar","run.jar"]
+{{< /highlight >}}
+
 So verify the two ways to run the application and view `http://localhost:8080`.
 
 First run `./gradlew run` and if you hit any key, it will shutdown.
