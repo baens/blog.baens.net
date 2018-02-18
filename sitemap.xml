@@ -3,13 +3,13 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://blog.baens.net/posts/step-by-step-kotlin/</loc>
-    <lastmod>2018-02-11T00:00:00+00:00</lastmod>
+    <loc>https://blog.baens.net/posts/step-by-step-kotlin-jaxrs-hello-world/</loc>
+    <lastmod>2018-02-17T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://blog.baens.net/posts/step-by-step-kotlin-jaxrs-hello-world/</loc>
-    <lastmod>2018-02-17T00:00:00+00:00</lastmod>
+    <loc>https://blog.baens.net/posts/step-by-step-kotlin/</loc>
+    <lastmod>2018-02-12T00:00:00+00:00</lastmod>
   </url>
   
   <url>
@@ -24,19 +24,19 @@
   
   <url>
     <loc>https://blog.baens.net/</loc>
-    <lastmod>2018-02-11T00:00:00+00:00</lastmod>
+    <lastmod>2018-02-17T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://blog.baens.net/tags/kotlin/</loc>
-    <lastmod>2018-02-11T00:00:00+00:00</lastmod>
+    <lastmod>2018-02-12T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://blog.baens.net/posts/</loc>
-    <lastmod>2018-02-11T00:00:00+00:00</lastmod>
+    <lastmod>2018-02-17T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -47,13 +47,13 @@
   
   <url>
     <loc>https://blog.baens.net/series/step-by-step/</loc>
-    <lastmod>2018-02-11T00:00:00+00:00</lastmod>
+    <lastmod>2018-02-17T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://blog.baens.net/tags/</loc>
-    <lastmod>2018-02-11T00:00:00+00:00</lastmod>
+    <lastmod>2018-02-12T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
