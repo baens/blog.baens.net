@@ -3,15 +3,14 @@ title: "Step-by-step: Kotlin, JAX-RS (Jersey), and Docker"
 date: 2018-02-13
 weight: 2
 series: ["step-by-step"]
-tags: ["kotlin"]
 ---
 
 Hello Again and welcome to another blog post in my ongoing series on step-by-step tutorials. This one will actually build atop the last [Hello Kotlin](https://blog.baens.net/posts/step-by-step-kotlin/) one and make a [JAX-RS](https://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services) web service. This particular implementation of JAX-RS will be [Jersey](https://jersey.github.io/). Jersey is actually the reference implementation from Oracle, but there are a few out there that I've honestly haven't given enough time.
 
-## Step 0: Prerequisites
+## [Step 0: Prerequisites](https://github.com/baens/blog-step-by-step-jaxrs/commit/830399adbaf4da38e03146b93cf4cfa58a03929e)
 For this one, I am going to start off with my Kotlin Hello World repository. This already has a Gradle wrapper setup, along with some basic things. I've changed `mainClassName`  to `Server.kt` and `archivesBaseName` to match this projects name.
 
-## Step 1: Web Server
+## [Step 1: Web Server](https://github.com/baens/blog-step-by-step-jaxrs/commit/cb1373152bf52d7cdf5aa08489bafc327cf7912e)
 First step will be to get a working web server up and running. This project will be using the grizzly web server, which I recommend, as the embedded web server. It has a decent enough history of performance and from my usage it does a decent job.
 
 So let's take a look at how a quick server can be setup so we can verify we have the HTTP pipeline correct.
@@ -77,11 +76,10 @@ run {
 
 **Line 8 - 11**: This is how we make `./gradlew run` work. The `standardInput` we set to the normal `System.in` (it defaults to an empty set which breaks things). Then we setup the environment variables with the `environment` configuration.
 
-We need to add a way for the port to be exposed by Docker to the outside world. Since we are binding on port 8080 we need to have that exposed as well. So in the *Dockerfile* we will add one little line before the CMD statement.
+We need to add a way for the port to be exposed by Docker to the outside world. Since we are binding on port 8080 we need to have that exposed as well. So in the `Dockerfile` we will add one little line before the CMD statement.
 
 **Dockerfile (only parts)**
-{{< highlight gradle "linenos=table" >}}
-...
+{{< highlight gradle "linenos=table,linenostart=14,hl_lines=1" >}}
 EXPOSE 8080
 
 CMD ["java","-jar","run.jar"]
@@ -93,9 +91,9 @@ First run `./gradlew run` and if you hit any key, it will shutdown.
 
 Second run the docker command `docker build -t myserver . && docker run -p 8080:8080 myserver`. This you can run and then hit *Ctrl+C* to shut it down. 
 
-Quick aside on the docker command: there are two parts to it, first you build the image you want to run, then you run it. The *-t* you pass in the build command is a tag that makes it easier to look up later. In the run part the *-p* is the ports we will bind to the host. For this example we are taking the containers's 8080 port mapping it to the hosts 8080 port. 
+Quick aside on the docker command: there are two parts to it, first you build the image you want to run, then you run it. The `-t` you pass in the build command is a tag that makes it easier to look up later. In the run part the `-p` is the ports we will bind to the host. For this example we are taking the containers's 8080 port mapping it to the hosts 8080 port. 
 
-## Step 2: Add Simple JAX-RS endpoint that prints "Hello World"
+## [Step 2: Add Simple JAX-RS endpoint that prints "Hello World"](https://github.com/baens/blog-step-by-step-jaxrs/commit/c281332c897fa4bb0de573d447ab3c6adebd5ee1)
 For this let's create the needed pipeline to get the needed resources. There is a little bit of yak shaving needed for this setup to get all of the right pieces in the place but I think I've boiled it down to the simple parts. 
 
 First let's see what the resource (these are what the groups of end points are called) look like for our first end point.
@@ -130,7 +128,7 @@ class Application : ResourceConfig() {
 }
 {{< /highlight >}}
 
-Again, this is fairly straight forward. The [ResourceConfig](https://jersey.github.io/apidocs/latest/jersey/org/glassfish/jersey/server/ResourceConfig.html) is where all of base application is setup. In this example. we scan the *jaxrs.resources* namespace for any resources or other things that can register with JAX-RS. This is a specific to Jersey but it makes it easier to setup things.
+Again, this is fairly straight forward. The [ResourceConfig](https://jersey.github.io/apidocs/latest/jersey/org/glassfish/jersey/server/ResourceConfig.html) is where all of base application is setup. In this example. we scan the `jaxrs.resources` namespace for any resources or other things that can register with JAX-RS. This is a specific to Jersey but it makes it easier to setup things.
 
 Alright, now that we have all of the configuration setup for JAX-RS and a resource, lets make the server recognize it. So to the `Server.kt` file added this.
 
@@ -143,7 +141,7 @@ val httpServer = GrizzlyHttpServerFactory.createHttpServer(
     )
 {{< /highlight >}}
 
-**Line 12**: This is all you need to add. A new instance of the *Application* class and the Grizzly server does all the rest for you.
+**Line 12**: This is all you need to add. A new instance of the `Application` class and the Grizzly server does all the rest for you.
 
 Now, one last thing, we need to add a dependency for Jersey. This one will make all of the magical dependency injection happen behind the scenes and you need one because the system was made to be generic. The specific implementation we will use is [HK2](https://javaee.github.io/hk2/) as opposed to [Guice](https://github.com/google/guice) or others. This was just the default that I've used and have had no problems with it so I recommend it. So here is the line that needs to be added.
 
@@ -158,10 +156,10 @@ dependencies {
 
 Go ahead and run to see the output on `http://localhost:8080/helloWorld`.
 
-## Step 3: Add JSON handling
+## [Step 3: Add JSON handling](https://github.com/baens/blog-step-by-step-jaxrs/commit/173f0916dbea62ca4f5ed982bf7bdaf062af58fb)
 Now that we have a simple web server up, let's get JSON handling. This isn't configured out of the box but it is straight forward. So let's get it setup and working and have an end point setup to demonstrate that.
 
-Let's setup our the with the parts that will show a JSON endpoint.
+Let's setup our resource to have the parts needed to show JSON output.
 
 **src/jaxrs/resources/HelloWorld.kt**
 {{< highlight kotlin "linenos=table,linenostart=10" >}}
@@ -176,9 +174,9 @@ data class HelloJson(val prop1: Int, val prop2: String)
 fun helloJson() = HelloJson(1, "test")
 {{< /highlight >}}
 
-**Line 13**: This is why I love Kotlin, this is a data class. Pure and simple. We have two properties that will be exposed to the JSON interface. One an integer, the next a string.
+**Line 13**: This is why I love Kotlin, this is a data class. A  beautifully pure and simple structure to pass data around. We have two properties that will be exposed to the JSON interface. One an integer, the next a string.
 
-**Lines 15-18**: This is how you setup an endpoint that will produce a JSON object (well, force it too, but that's for another day, or go read the Jersey documentation). We simply just return an instance of the *HelloJson* data class.
+**Lines 15-18**: This is how you setup an endpoint that will produce a JSON object (well, force it too, but that's for another day, or go read the [Jersey documentation](https://jersey.github.io/documentation/latest/jaxrs-resources.html)). We simply just return an instance of the `HelloJson` data class.
 
 Now, we need to tweak our dependencies and add the JSON handling. While we do this, we will also be violating the [Rule of 3](https://en.wikipedia.org/wiki/Rule_of_three_(computer_programming)), and we are going to refactor out the common things that may change. Let's see the result and we will talk about what exactly that means. 
 
@@ -194,7 +192,7 @@ dependencies {
 }
 {{< /highlight >}}
 
-**Line 22**: We added this line because the parts that could chain between all of these jersey dependencies are the version. So let's get that pulled out so it can change without having to go to all of the different parts. A small application of the Rule of 3, but hey, it works.
+**Line 22**: We added this line because the parts that could change between all of these jersey dependencies is the Jersey version. So let's do the work now to make it so we can make the version change in one place. A small application of the Rule of 3, but hey, it works.
 
 **Line 28**: This is adding [Jackson](https://github.com/FasterXML/jackson) to do our JSON processing. This is the magic dependency that we will need to make this all work. 
 
@@ -202,10 +200,10 @@ At this point you can now run it and hit `http://localhost:8080/helloWorld/json`
 
 And with that, you should now have the basics to be dangerous with. You can setup a HTTP REST server and go to town with what ever you need. But hey, let me throw in one more little bonus step that may help you out.
 
-## Bonus Step 4: Add verbose logging
+## [Bonus Step 4: Add verbose logging](https://github.com/baens/blog-step-by-step-jaxrs/commit/7c753f0d1ee6d474a2801a805a20fa7fa4db98e6)
 Just to make it easier to see requests coming in and out of your service on the command line. Which can help with proving you are either insane or sane depending on the circumstances, let's add a logger that will output each request.
 
-Thankfully this fairly straight forward. We just need to tweak the *Application.kt* setup. So here is what you need.
+Thankfully this fairly straight forward. We just need to tweak the `Application.kt` setup. So here is what you need.
 
 **src/jaxrs/Application.kt**
 {{< highlight kotlin "linenos=table,linenostart=12">}}
@@ -216,4 +214,4 @@ register(LoggingFeature(Logger.getLogger(LoggingFeature.DEFAULT_LOGGER_NAME),
 )
 {{< /highlight >}}
 
-These are the lines you need to add to the *init* block. Fairly straight forward (make sure to add all of the right *import* statements!). This should now display all of the requests and responses on the command line so you can verify things are going in and out as expected. 
+These are the lines you need to add to the `init` block. Fairly straight forward (make sure to add all of the right `import` statements!). This should now display all of the requests and responses on the command line so you can verify things are going in and out as expected. 
