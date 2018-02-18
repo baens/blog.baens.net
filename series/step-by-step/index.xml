@@ -12,16 +12,6 @@
     
     
     <item>
-      <title>Blog Series: The step-by-step way tutorial</title>
-      <link>https://blog.baens.net/posts/step-by-step-series/</link>
-      <pubDate>Sun, 11 Feb 2018 00:00:00 +0000</pubDate>
-      
-      <guid>https://blog.baens.net/posts/step-by-step-series/</guid>
-      <description>Over the course of my development career, I&amp;rsquo;ve always tend to enjoy tutorials or explanations that guide you through concepts or frameworks step by step. Ones that have a goal and slowly work through things step by step, building upon itself to reach the final destination. All while explaining why this piece fits there or pros and cons of this piece over here.
-These trainings are usually harder to come by because everyone is looking for a quick fix, or tool that does it for you automagically.</description>
-    </item>
-    
-    <item>
       <title>Step-by-step: Kotlin and Docker</title>
       <link>https://blog.baens.net/posts/step-by-step-kotlin/</link>
       <pubDate>Sun, 11 Feb 2018 00:00:00 +0000</pubDate>
@@ -31,6 +21,26 @@ These trainings are usually harder to come by because everyone is looking for a 
 For this step-by-step guide let&amp;rsquo;s do something basic and get kotlin compiling and running inside a docker container.
 The companion repository is here.
 Step 0: Prerequisites I am going to assume you have the following installed and already running. We will be using the local gradle wrapper instance after the initial setup, but you do need it for the initial creation.</description>
+    </item>
+    
+    <item>
+      <title>Step-by-step: Kotlin, JAX-RS (Jersey), and Docker</title>
+      <link>https://blog.baens.net/posts/step-by-step-kotlin-jaxrs-hello-world/</link>
+      <pubDate>Sat, 17 Feb 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.baens.net/posts/step-by-step-kotlin-jaxrs-hello-world/</guid>
+      <description>Hello Again and welcome to another blog post in my ongoing series on step-by-step tutorials. This one will actually build atop the last Hello Kotlin one and make a JAX-RS web service. This particular implementation of JAX-RS will be Jersey. Jersey is actually the reference implementation from Oracle, but there are a few out there that I&amp;rsquo;ve honestly haven&amp;rsquo;t given enough time.
+Step 0: Prerequisites For this one, I am going to start off with my Kotlin Hello World repository.</description>
+    </item>
+    
+    <item>
+      <title>Blog Series: The step-by-step way tutorial</title>
+      <link>https://blog.baens.net/posts/step-by-step-series/</link>
+      <pubDate>Sun, 11 Feb 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.baens.net/posts/step-by-step-series/</guid>
+      <description>Over the course of my development career, I&amp;rsquo;ve always tend to enjoy tutorials or explanations that guide you through concepts or frameworks step by step. Ones that have a goal and slowly work through things step by step, building upon itself to reach the final destination. All while explaining why this piece fits there or pros and cons of this piece over here.
+These trainings are usually harder to come by because everyone is looking for a quick fix, or tool that does it for you automagically.</description>
     </item>
     
   </channel>
