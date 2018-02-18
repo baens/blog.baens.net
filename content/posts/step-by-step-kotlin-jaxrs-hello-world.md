@@ -1,7 +1,6 @@
 ---
 title: "Step-by-step: Kotlin, JAX-RS (Jersey), and Docker"
-date: 2018-02-13
-weight: 2
+date: 2018-02-17
 series: ["step-by-step"]
 ---
 
