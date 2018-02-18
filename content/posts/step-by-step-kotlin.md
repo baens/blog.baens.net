@@ -1,7 +1,6 @@
 ---
 title: "Step-by-step: Kotlin and Docker"
-date: 2018-02-11
-weight: 2
+date: 2018-02-12
 series: ["step-by-step"]
 tags: ["kotlin"]
 ---
