@@ -50,9 +50,9 @@ fun main(args: Array<String>) {
 
 **Line 9**: This creates the Grizzly Server and the 2nd parameter (`true`) makes the server start immediately.
 
-**Lines 14 - 27**: Now, let me explain this because this is sort of magic. When running under Gradle (`./gradlew run`), it captures all of the input and passes it along to the application. So for example, on the command line you usually stop applications by hitting `Ctrl+C`. This however doesn't work when you run it under Gradle because it captures it and stops the daemon that is running the application. This can be a gotcha because sometimes the Gradle daemon doesn't shutdown cleanly.
+**Lines 14 - 27**: Now, let me explain this because this is sort of magic. When running under Gradle (`./gradlew run`), Gradle captures all of the input and passes it along to the application. So for example, on the command line you usually stop applications by hitting `Ctrl+C`. This however doesn't work when you run it under Gradle because Gradle captures the signal and stops the daemon that is running the application. Sometimes, the Gradle daemon doesn't stop properly, or clean everything up and produces a mess the next go around. 
 
-So my hack to fix all of this was to read an environment variable that flags which method I should use. When running under Gradle (hold on one sec and I'll show you how) we will just wait for input. When running under everything else (i.e. docker, `java -jar`) we will wait for Ctrl+C or a kill signal from somewhere else. 
+So my hack to fix all of this was to have a feature flag in an environment variable. When running under Gradle (hold on one sec and I'll show you how) we will just wait for input. When running under everything else (i.e. docker, `java -jar`) we will wait for Ctrl+C or a kill signal from somewhere else. 
 
 Now for the toolchain bits, we need to add the dependencies and setup the run bits to work with out shutdown hooks.
 
@@ -142,7 +142,7 @@ val httpServer = GrizzlyHttpServerFactory.createHttpServer(
 
 **Line 12**: This is all you need to add. A new instance of the `Application` class and the Grizzly server does all the rest for you.
 
-Now, one last thing, we need to add a dependency for Jersey. This one will make all of the magical dependency injection happen behind the scenes and you need one because the system was made to be generic. The specific implementation we will use is [HK2](https://javaee.github.io/hk2/) as opposed to [Guice](https://github.com/google/guice) or others. This was just the default that I've used and have had no problems with it so I recommend it. So here is the line that needs to be added.
+Now, one last thing, we need to add a dependency for Jersey. This one will make all of the magical dependency injection happen behind the scenes. The Jersey team have made this configurable dependency, so if you want a different type of injection system you can. The specific one implementation we will use is [HK2](https://javaee.github.io/hk2/) as opposed to [Guice](https://github.com/google/guice) or others. This was just the default that I've used and have had no problems with it so I recommend it. So here is the line that needs to be added.
 
 **build.gradle (parts)**
 {{< highlight gradle "linenos=table,hl_lines=4,linenostart=22" >}}
