@@ -71,4 +71,88 @@ Neat!
 
 But of course that isn't everything. We need to clean up after ourselves. Database connections in Java have a done of cruft that can be left over. What I'm talking about specifically in this case is the database connetions.
 
-First let's experiment to see how bad the problem really is. 
+First let's experiment to see how bad the problem really is. So let's get a base line by running this SQL on the database to see what a "quiet" database looks like.
+
+```sql
+SELECT query, count(*) FROM pg_stat_activity group by query;
+```
+
+You should get something that looks like this:
+
+query | count
+------|------
+SELECT query, count(*) FROM pg_stat_activity group by query | 1
+
+Now let's modify the main loop to do the query 10 times and hold so we can inspect
+
+```kotlin
+fun main(args: Array<String>) {
+    setupDataSource()
+
+    for(i in 1..10) {
+        getDataV1().forEach { println(it) }
+    }
+
+    println("holding")
+    readLine()
+}
+```
+
+You should now see something like this
+
+query | count
+------|------
+SELECT query, count(*) FROM pg_stat_activity group by query | 1
+SELECT id, data FROM test | 10
+
+ACK! We have 10 open query sessions. That's not going to scale very well. And just to prove how fast it won't scale, instead of 10, do 20. You should see it stall then throw an exception about not being able to get a connection.
+
+Let's fix this. So Java streams have the ability to do something once they are closed. So let's change our `getData` method to this:
+
+```kotlin
+fun getData() : Stream<DataRow> {
+    val connection = dataSource.connection
+
+    val statement = connection.prepareStatement("SELECT id, data FROM test")
+
+    val resultSet = statement.executeQuery()
+
+    return mapper.stream(resultSet)
+                 .onClose {
+                    println("closing connection")
+                    resultSet.close()
+                    statement.close()
+                    connection.close()
+                 }
+}
+```
+
+And if we run that....well we still have the same issue. This is because we need to let the stream know when it is a good time to close. So let's modify the main loop to this:
+
+```kotlin
+fun main(args: Array<String>) {
+    setupDataSource()
+
+    for(i in 1..20) {
+        getData().use {
+            it.forEach { println(it) }
+        }
+    }
+
+    println("holding")
+    readLine()
+}
+```
+
+That `use` block is what is the important piece. It says to use the resource for this block, and once done, dispose of it. Sadly we have to be explicit in the usage otherwise resources won't get cleaned up.
+
+Now if you run this piece, you should get to the `holding` line. And you should see this table as the result
+
+query | count
+------|------
+SELECT query, count(*) FROM pg_stat_activity group by query | 1
+SELECT id, data FROM test | 1
+SET application_name = 'PostgreSQL JDBC Driver' | 9
+
+Much better. We will still have 1 connection open because that was the last query, and we have 9 holder spots open for our connection pool. Much better!x
+
