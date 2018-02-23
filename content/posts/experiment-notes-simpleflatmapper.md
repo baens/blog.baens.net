@@ -1,6 +1,6 @@
 ---
 title: "Notes from experimenting with simpleflatmapper"
-date: 2018-02-19
+date: 2018-02-23
 ---
 
 When I was a C# developer, I adored the different Micro-ORMs that were available. [Massive](https://github.com/FransBouma/Massive) was one of the first ones I heard about and used. The idea that I could just write straight SQL and get objects out without any other configuration I loved. When I got back into the JVM world, I always wondered if there were such a thing out there.
