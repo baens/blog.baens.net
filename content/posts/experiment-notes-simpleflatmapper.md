@@ -3,11 +3,11 @@ title: "Notes from experimenting with simpleflatmapper"
 date: 2018-02-19
 ---
 
-When I was a C# developer, I adored the different Micro-ORMs that were available. If I can recall correctly, [Massive](https://github.com/FransBouma/Massive) was one of the first ones I heard about. The idea that I could just write straight SQL and get objects out without any other configuration I loved. When I got back into the JVM world, I always wondered if there were such a thing out there.
+When I was a C# developer, I adored the different Micro-ORMs that were available. [Massive](https://github.com/FransBouma/Massive) was one of the first ones I heard about and used. The idea that I could just write straight SQL and get objects out without any other configuration I loved. When I got back into the JVM world, I always wondered if there were such a thing out there.
 
 Well I've finally found a decent one. The library is called [Simpleflatmapper](http://simpleflatmapper.org/). With no XML configuration file, I can get from SQL to object with out any problem. This is amazing!
 
-Let's see some code. In these examples I will be using Kotlin as the JVM language, but this should work with Java as well.
+Let's see some code. In these examples I will be using Kotlin as the JVM language, but this should work with Java as well. [There is a code repository for this as well](https://github.com/baens/experiment-kotlin-simpleflatmapper).
 
 In the examples I have a postgres database running with the following table setup
 
@@ -49,7 +49,7 @@ fun getData() : Stream<DataRow> {
 }
 ```
 
-If you ran this with everthing setup (repository here) you could see the following:
+If you ran this you could see the following:
 
 ```
 DataRow(id=1, data=1)
@@ -60,7 +60,7 @@ DataRow(id=4, data=4)
 
 Neat!
 
-But of course that isn't everything. We need to clean up after ourselves. Database connections on the JVM have a lot of cruft that can be left over. The code above has the `resultSet`, the `statement` and the `connection` that need to be closed. Yes, it sucks we can't just have it do it all for us, but sometimes you just need to be a good janitor. 
+But of course that isn't everything. We need to clean up after ourselves. Database connections on the JVM have a lot of cruft that can be left over. The code above has the `resultSet`, the `statement` and the `connection` that need to be closed manually. Yes, it sucks we can't just have it do it all for us, but sometimes you just need to be a good janitor. 
 
 First let's experiment to see how bad the problem really is. So let's get a base line by running this SQL on the database to see what a "quiet" database looks like.
 
@@ -98,7 +98,7 @@ SELECT id, data FROM test | 10
 
 ACK! We have 10 open query sessions. That's not going to scale very well. And just to prove how fast it won't scale, instead of 10, do 100. There should be an exception stating that there are too many open connections.
 
-Let's fix this. The Java [`Stream`](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html) has an event for this kind of thing. The `Stream` knows when it has been closed and allows a cleanup job to run if needed. To subscribe to this we will create an [`onClose`](https://docs.oracle.com/javase/8/docs/api/java/util/stream/BaseStream.html#onClose-java.lang.Runnable-) handler. This will allow us to close and cleanup the things we need and we can carry on from there.
+Let's fix this. The Java [`Stream`](https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html) has an event for this kind of thing. The `Stream` knows when it has been closed and allows a cleanup job to run if needed. To subscribe to this we will create an [`onClose`](https://docs.oracle.com/javase/8/docs/api/java/util/stream/BaseStream.html#onClose-java.lang.Runnable-) handler.
 
 The code for that looks something like this:
 
@@ -122,9 +122,9 @@ fun getData() : Stream<DataRow> {
 
 And if we run that....well we still have the same issue. 
 
-The above code fixes the creator of the stream, but we also need to handle this kind of thing from the user of the stream. In other words, who ever is actually using the stream needs to signal, "Hey, I'm done, go do your cleanup thing here". Again, this would be nice if this is all handled automatically, but certain things just need to be explicit, and cleanup routes are usually explicit.
+The above code fixes the creator of the stream, but we also need to handle this kind of thing from the user side. In other words, who ever is actually using the stream needs to signal, "Hey, I'm done, go do your cleanup thing now". Again, this would be nice if this is all handled automatically, but certain things just need to be explicit, and cleanup routines are usually explicit.
 
-This is because a `Stream` is "resourceful". I.e. it can hold on to resources as it works waiting for the right time to clean up. And sadly it can't do that automatically for us, so we need to tell it when to shut things down. Now, in normal Java you have something called [`try with resource`](https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html). But in Kotlin, it's actually fairly straight forward with the `use` statement. For example this is how our main loop will now look:
+This is because a `Stream` is "resourceful". I.e. it can hold on to resources that are needed as it iterates through sometimes. While it would be nice if it would just cleanup after it was done, there isn't really anyway for the stream itself to know when the user is done iterating through it. Now, in normal Java you have something called [`try with resource`](https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html). But in Kotlin, it's actually fairly straight forward with the `use` statement. For example this is how our main loop will now look:
 
 ```kotlin
 fun main(args: Array<String>) {
