@@ -6,7 +6,7 @@
     <description>Recent content in Posts on Erik&#39;s Ramblings</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 19 Feb 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 23 Feb 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.baens.net/posts/index.xml" rel="self" type="application/rss+xml" />
     
@@ -14,7 +14,7 @@
     <item>
       <title>Notes from experimenting with simpleflatmapper</title>
       <link>https://blog.baens.net/posts/experiment-notes-simpleflatmapper/</link>
-      <pubDate>Mon, 19 Feb 2018 00:00:00 +0000</pubDate>
+      <pubDate>Fri, 23 Feb 2018 00:00:00 +0000</pubDate>
       
       <guid>https://blog.baens.net/posts/experiment-notes-simpleflatmapper/</guid>
       <description>When I was a C# developer, I adored the different Micro-ORMs that were available. Massive was one of the first ones I heard about and used. The idea that I could just write straight SQL and get objects out without any other configuration I loved. When I got back into the JVM world, I always wondered if there were such a thing out there.
