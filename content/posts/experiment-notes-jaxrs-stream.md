@@ -20,7 +20,7 @@ class StreamResource {
 }
 ```
 
-If we run this, we get this kind of output
+If we run this, we get this kind of output:
 
 ```json
 {"parallel":false}
