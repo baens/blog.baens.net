@@ -6,10 +6,20 @@
     <description>Recent content on Erik&#39;s Ramblings</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 23 Feb 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 26 Feb 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.baens.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Notes from experimenting with JAX-RS and Streams</title>
+      <link>https://blog.baens.net/posts/experiment-notes-jaxrs-stream/</link>
+      <pubDate>Mon, 26 Feb 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.baens.net/posts/experiment-notes-jaxrs-stream/</guid>
+      <description>So, this idea is a slight continuation on from my notes of how to get a stream out of JDBC using the Simpleflatmapper library.
+The goal here is to make it so I can send a stream of objects out with JAX-RS (Jersey). This makes it possible to have lazy evaluation of a stream of data from a database that gets pushed up to the browser as soon as it comes off the database.</description>
+    </item>
     
     <item>
       <title>Notes from experimenting with simpleflatmapper</title>
