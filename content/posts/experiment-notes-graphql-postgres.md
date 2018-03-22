@@ -1,6 +1,6 @@
 ---
 title: "Notes from experimenting with GraphQL and Kotlin"
-date: 2018-02-28
+date: 2018-03-22
 ---
 
 # What is this GraphQL thing
