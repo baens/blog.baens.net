@@ -1,6 +1,6 @@
 baseURL = "https://blog.baens.net/"
 languageCode = "en-us"
-title = "Erik's Ramblings"
+title = "Erik Lindblom's Ramblings"
 theme = "pickles"
 pygmentsCodeFences = true
 
