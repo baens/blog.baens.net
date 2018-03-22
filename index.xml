@@ -6,10 +6,19 @@
     <description>Recent content on Erik&#39;s Ramblings</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 26 Feb 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 22 Mar 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.baens.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Notes from experimenting with GraphQL and Kotlin</title>
+      <link>https://blog.baens.net/posts/experiment-notes-graphql-postgres/</link>
+      <pubDate>Thu, 22 Mar 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.baens.net/posts/experiment-notes-graphql-postgres/</guid>
+      <description>What is this GraphQL thing I have finally got time to try out GraphQL. I&amp;rsquo;ve been reading about it more and more and wanted to get a sense of how to build a data API with it. Now, if you don&amp;rsquo;t know what GraphQL is, here is my take on it. It is a way to create data APIs that allow clients to tell you what data they actually need.</description>
+    </item>
     
     <item>
       <title>Notes from experimenting with JAX-RS and Streams</title>
