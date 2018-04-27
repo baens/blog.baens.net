@@ -65,6 +65,8 @@ done
 
 # Agent Install
 
+Download agent from: https://github.com/WPO-Foundation/wptagent/releases
+
 Install chrome
 
 Add yum repo
@@ -80,13 +82,10 @@ gpgcheck=1
 gpgkey=https://dl-ssl.google.com/linux/linux_signing_key.pub
 ```
 
-yum install python2-pip gcc gcc-c++ python-devel
+yum install ImageMagick Xvfb google-chrome-stable python2-pip gcc python-devel
 
 pip install --upgrade pip
 
-pip install psutil monotonic ujson
-
-/opt/webpagespeedtest/wptagent
-cp browsers.ini.sample browsers.ini
+pip install psutil monotonic ujson dnspython pillow
 
 python wptagent.py -vvvv --location ostk --server "http://watchtower-speedtest.fedbase.dev.ostk.com/work/" --name ostk_wptdriver
