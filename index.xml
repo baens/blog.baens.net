@@ -6,10 +6,20 @@
     <description>Recent content on Erik Lindblom&#39;s Ramblings</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 22 Mar 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 28 May 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.baens.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Adding tests to Kotlin &amp; JAX-RS (Jersey) project</title>
+      <link>https://blog.baens.net/posts/add-tests-to-jaxrs-setup/</link>
+      <pubDate>Mon, 28 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.baens.net/posts/add-tests-to-jaxrs-setup/</guid>
+      <description>I have a blog post about setting up a JAX-RS with Kotlin and one thing I neglected to show was how to test. So, let&amp;rsquo;s go back and fix this. For this, I will be using JUnit 5 for the test runner, AssertJ as the assertion library, and Mockito as the mocking framework.
+Let&amp;rsquo;s go over quickly what tests I&amp;rsquo;ve found valuable as I&amp;rsquo;ve created JAX-RS services. Well, in reality, there&amp;rsquo;s only two: one that exercises the HTTP interface (so, &amp;ldquo;integration test&amp;rdquo;) and one that tests the class and methods in isolation (so, &amp;ldquo;unit tests&amp;rdquo;).</description>
+    </item>
     
     <item>
       <title>Notes from experimenting with GraphQL and Kotlin</title>
