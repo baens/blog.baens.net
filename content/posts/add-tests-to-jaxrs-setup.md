@@ -1,16 +1,16 @@
 ---
 title: "Adding tests to Kotlin & JAX-RS (Jersey) project"
-date: 2018-05-27
+date: 2018-05-28
 ---
 
 I have a [blog post](https://blog.baens.net/posts/step-by-step-kotlin-jaxrs-hello-world/) about setting up a JAX-RS with Kotlin and one thing I neglected to show was how to test. So, let's go back and fix this. For this, I will be using [JUnit 5](https://junit.org/junit5/) for the test runner, [AssertJ](http://joel-costigliola.github.io/assertj/) as the assertion library, and [Mockito](http://site.mockito.org/) as the mocking framework.
 
-Let's go over quickly what tests I've found valuable as I've created JAX-RS services. Well, in reality, there's only two: one that exercises the HTTP interface (so, "integration test") and one that tests the class and methods in isolation (so, "unit tests"). I find it more valuable to tell which parts of the system are being exercised in the tests rather than trying to identify what type of common test level they are at. 
+Let's go over quickly what tests I've found valuable as I've created JAX-RS services. Well, in reality, there's only two: one that exercises the HTTP interface (so, "integration test") and one that tests the class and methods in isolation (so, "unit tests"). I find it more valuable to tell which parts of the system are being exercised in the tests rather than trying to identify what type of common test level they are at. Just a weird quirk, as you will see I have plenty of them. 
 
 # Setting up the dependencies in gradle
 First, we need to make sure we are on gradle 4.6 or greater. I personally use the wrapper version, but just verify that you have it somehow. To get that specific wrapper version, you can run `gradle wrapper --gradle-version 4.6` and then all things should be good there.
 
-For the actual code dependencies, here is what you will need:
+For the actual code dependencies, here is what you will need in the `build.gradle` file:
 
 ```gradle
 def junitVersion = "5.1.0"
@@ -49,7 +49,7 @@ A basic binding implementation for H2 looks like this:
 ```kotlin
 class Bindings : AbstractBinder() {
     override fun configure() {
-
+        // bind(<implementation class>).to(<interface>)
     }
 }
 ```
@@ -88,9 +88,9 @@ idea {
 
 This is intended only for IntelliJ. I will try and test Eclipse here soon and report back but I've honestly haven't touched that in years. 
 
-# HTTP Test: Verify end point returns 200
+# HTTP Tests
 
-One of the very first tests I write when creating end points is that I can get a 200 back from the end point and get JSON back. This test will be my happy path test, so it should always pass. As requirements grow for this end point I will go back and add things that may be required to make this test pass by default. This is what these tests may look like:
+One of the very first tests I write when creating end points is that I can get a 200 back from the end point and get JSON back as the content-type. These tests will be my happy path test, so it should always pass. As requirements grow for this end point I will go back and add things that may be required to make this test pass by default. This is what these tests may look like:
 
 ```kotlin
 class `HTTP HelloWorldResource should` : JerseyTest(Application()) {
@@ -108,13 +108,13 @@ class `HTTP HelloWorldResource should` : JerseyTest(Application()) {
 }
 ```
 
-_**Note**_: that `@Test` annotation is from the JUnit 4 namepsace `import org.junit.Test`. If you don't have this and instead use the newer JUnit 5 namespace, the test will not run. That is because the `JerseyTest` base class assumes that certain things run that JUnit 5 doesn't do anymore (think static class setup process and such). You can be really neat and rename the JUnit 4 import like this: `import org.junit.Test as TestV4` to avoid confusion if you put these types of tests in the same file. 
+_**Note**_: that `@Test` annotation is from the JUnit 4 namepsace, the import looks like this: `import org.junit.Test`. If you don't have this and instead use the newer JUnit 5 namespace, the test will not run. That is because the `JerseyTest` base class assumes that certain things run that JUnit 5 doesn't do anymore (think static class setup process and such). You can be really neat and rename the JUnit 4 import like this: `import org.junit.Test as TestV4` to avoid confusion if you put these types of tests in the same file. 
 
 As you can see, this test isn't that horrible. It is fairly straight forward and the boilerplate around the test isn't bad. Let's go into a more complicated example with bindings.
 
 # Setting up a null binding as your first implementation
 
-When I start adding layers to my application, I usually start with drilling down from my upper layers into the inner layers. Because of that I usually don't have an implementation per say to use for testing or for anything much else. I kind of like this approach because I can test out the API to see if I indeed want this abstraction and what kind of behavior I expect. With all of that in mind, usually when I create an interface I will always have a _null object_ right along side it. This will make it easier to start off with some default behavior and makes it easier to test the system down the road. 
+When I start adding layers to my application, I usually start with drilling down from my "upper" layers to the "lower" layers. Because of that I usually don't have an implementation per say to use for testing or for anything much else. I kind of like this approach because I can test out the API to see if I indeed want this abstraction and what kind of behavior I expect. With all of that in mind, usually when I create an interface I will always have a _null object_ right along side it. This will make it easier to start off with some default behavior and makes it easier to test the system down the road. 
 
 For example, a the null object for the `DataService` defined above may look like this:
 
@@ -124,9 +124,9 @@ class NullDataService : DataService {
 }
 ```
 
-# Method behavior test: Testing that I interact with the DataService correctly
+# Method level testing
 
-Now that we have this null object, let's say we need to add functionality to our `helloWorld` method so that it returns the data from this service. With a TDD approach, the first test maybe will just check that the method returns the same number of items. The next test may ensure that we actually have an item contained in the returning list. The tests are fairly straight forward so let's look at the code for it:
+Now that we have our interface and it's null object, let's say we need to add functionality to our `helloWorld` method so that it returns the data from this service. With a TDD approach, the first test maybe will just check that the method returns the same number of items. The next test may ensure that we actually have an item contained in the returning list. These tests are fairly straight forward so let's look at the code for it:
 
 ```kotlin
 @ExtendWith(MockitoExtension::class)
@@ -161,7 +161,7 @@ class `HelloWorldResource Should` {
 
 Few things to point out here. I am using the `MockitoExtension` that allows us to reduce on the setup parts of the tests. This allows us to create properties with the `@Mock` and `@InjectMocks` annotations. This makes reuse in the test class VERY easy. The `lateinit` part is because Kotlin really wants classes to show when they will be initialized. This statement flags to the compiler that we will be doing it behind the scenes later and not to worry about things. 
 
-I've also demonstrated here how to create a method that will allow easy recreation of data test. As you see at the top, we have a `createHelloJson` function that creates the data object. Then if we want to override different properties, we can easily (as demonstrated in the 2nd test). This allows the objects to have sane defaults, and if that object grows, makes it easy to add more fields without having to change 30 tests.
+I've also added a helper method to make creating test data easier. As you see at the top, we have a `createHelloJson` function that creates the data object. Then if we want to override different properties, we can easily (as demonstrated in the 2nd test) add just the property we want to override. This allows the objects to have sane defaults, and if that object grows, makes it easy to add more fields without having to change 30 tests.
 
 # Making the HTTP tests work after we add the DataService constructor dependency
 
@@ -187,4 +187,8 @@ First we needed to add the `@Inject` property to the constructor of our resource
 
 # Wrapping up
 
-Now, if any of this didn't make sense and you want to see it all put together, go over to the [github repository](https://github.com/baens/kotlin-jax-rs-helloworld-with-testing) where this is housed and you should be able to take a look at the full thing working. I've created a static list implementation of that data service for one to look at what an actual implementation may look like. I've also thrown in a exception handler so you can see exceptions pop up if you actually have any for easier debugging. 
+Now, if any of this didn't make sense and you want to see it all put together, go over to the [github repository](https://github.com/baens/kotlin-jax-rs-helloworld-with-testing) where this is housed and you should be able to take a look at the full thing working. I've created a static list implementation of that data service for one to look at what an actual implementation may look like. 
+
+# Bonus: How to log exceptions in Jersey
+
+If you check out the code on github, you will notice another class way down in the `Application.kt` file. This class hooks into Jersey's event system so if a request errors out in an exception, we can observe it. Take note this is just for observing if an exception has happened, not actually doing anything with the request. If we wanted to handle that, we could create a request mapper, but that is outside of the scope of this particular blog post.   
