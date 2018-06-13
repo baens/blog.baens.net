@@ -6,10 +6,20 @@
     <description>Recent content on Erik Lindblom&#39;s Ramblings</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 28 May 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 13 Jun 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.baens.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Setting up a development workspace for Postgres and vault</title>
+      <link>https://blog.baens.net/posts/postgres-vault-dev-workspace/</link>
+      <pubDate>Wed, 13 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.baens.net/posts/postgres-vault-dev-workspace/</guid>
+      <description>My current line of work has led me to start getting into docker more and more. One of the neat things I&amp;rsquo;ve been getting to play with is using Postgres as my database and Vault for secrets management. I figured it was time to showcase what a basic development workspace looks like to help get someone up and running quickly.
+I&amp;rsquo;ve hopefully boiled this down into the smallest pieces needed to make things work.</description>
+    </item>
     
     <item>
       <title>Adding tests to Kotlin &amp; JAX-RS (Jersey) project</title>
