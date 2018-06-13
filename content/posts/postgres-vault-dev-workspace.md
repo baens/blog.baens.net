@@ -1,6 +1,6 @@
 ---
 title: "Setting up a development workspace for Postgres and vault"
-date: 2018-05-30
+date: 2018-06-13
 ---
 
 My current line of work has led me to start getting into docker more and more. One of the neat things I've been getting to play with is using [Postgres](https://www.postgresql.org/) as my database and [Vault](https://www.vaultproject.io/) for secrets management. I figured it was time to showcase what a basic development workspace looks like to help get someone up and running quickly.
@@ -112,8 +112,7 @@ vault write dbs/roles/mydb-admin \
   max_ttl=1h \
   creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' \
                          VALID UNTIL '{{expiration}}'; \
-                         GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
-  revocation_statements="REASSIGN OWNED BY \"{{name}}\" TO "admin"; DROP OWNED BY \"{{name}}\"; DROP ROLE \"{{name}}\";"
+                         GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"{{name}}\";"
 
 # Wait for vault server to finish
 wait
@@ -121,13 +120,13 @@ wait
 
 This script is intended to be run when the vault container starts. This means that this script is responsible to ensure the server starts and stays running. Once that is complete, we then write out our configuration using the `vault` command. After that is all done, we let the script hang with the `vault server` portion with the `wait` command. This is because the script is what actually started the server and when this script ends, so will the docker container.  
 
-One of the first bits in the script is to take `VAULT_TOKEN` variable that is passed and make that our dev server token. This token is how you access your vault instance. And this makes it easy to define one token and make sure that the running server has that same key for access later on. And just to be clear, we are running vault in dev mode. This allows us to define that token up front. When vault is ran in production, these tokens are generated on startup for you. 
+One of the first bits in the script is to take `VAULT_TOKEN` variable that is passed and make that our dev server token. Now, a Vault token is your key in getting things out of vault. To ensure that we know the key, instead of doing the default behavior of generating a random key, we tell the server which token to use. And to make it even easier, we let the docker container pass us one token through `VAULT_TOKEN` and we tie that to the `VAULT_DEV_ROOT_TOKEN_ID` so we don't have to define that twice. And just to be extra clear, `VAULT_TOKEN` is what a client uses, the `VAULT_DEV_ROOT_TOKEN_ID` is what the server itself uses. If we didn't provide that dev token, the server would generate a random token that makes it a lot harder to development against. This is the difference between our dev Vault instance and a production one. In dev, we can define that token up front, in production, those are randomly generated for you.  
 
 The next interesting bits are the connection and role setup. One quick thing I want to point out that the paths follow a pattern. The name `dbs` comes from where we enabled the database plugin. There are then 3 sub paths of that, `config`, `roles` and `creds`. The `config` path is where the configuration to our database is stored. Next we add to the `roles` part which defines what roles can create credentials to our database with the config. Then there is a `creds` key that actually creates the credentials when it is read, more on using that later. 
 
 To reiterate we store configuration in `dbs/config/mydb`, we store role information in `dbs/roles/mydb-admin`. This automatically creates a path at `dbs/creds/mydb-admin` that we will use later to get our credentials.
 
-The postgres credentials and postgres is worth a blog post all together but let me talk about this really quick. Postgres roles can be tricky if you don't get them right. With vault, we are creating temporary roles that will come and go at will. When we use these credentials then to also manage the schema, we need to pay extra close attention on who actually owns the tables. When you create a table, who ever the role is that you are currently working as is the role that will be the owner of said table. Then, your next role will have issues actually accessing that table unless permissions and ownership have been setup correctly. I have a [dba.stackexchange](https://dba.stackexchange.com/q/208649/16141) question related this that will have a longer blog post later.
+The postgres credentials use and management is worth a blog post all together but let me talk about this really quick. With Vault, we are creating temporary roles that will come and go at will. When we use those credentials from Vault to also manage the schema (e.g. creating tables), we need to pay extra close attention on who actually owns those tables. When you create a table, who ever the role is that you are currently working as is the role that will be the owner of said table. Then, your next role will have issues actually accessing that table unless permissions and ownership have been setup correctly. I have a [dba.stackexchange](https://dba.stackexchange.com/q/208649/16141) question related this that will have a longer blog post later.
 
 # Docker-compose setup
 
@@ -163,17 +162,17 @@ Let's step through this line by line.
 
 Line 1 & 2 are just normal Docker compose file format stuff.
 
-The next 3 sections are the 3 different services we will be running. Postgres the database is defined in lines 3 - 13 and the vault service is defined in 14 - 24.
+The next 3 sections are the 3 different services we will be running. Postgres the database is defined in lines 3 - 13 and the Vault service is defined in 14 - 23.
 
-The database section is a fairly straight forward postgres docker setup. We add the SSL files to the docker container (line 6) and the script to be run on startup (line 7). We also expose the ports to other apps that I am developing can actually hit this when it is running (line 9). The last bits are environment variables to setup the initial database (line 11 - 13). Those last ones you can tweak to what ever you desire, these are just some defaults I've picked.
+The `database` section is a fairly straight forward postgres docker setup. We add the SSL files to the docker container (line 6) and the script to be run on startup (line 7). We also expose the ports to other apps that I am developing can actually hit this when it is running (line 9). The last bits are environment variables to setup the initial database (line 11 - 13). Those last ones you can tweak to what ever you desire, these are just some defaults I've picked.
 
-The vault section is mostly straight forward. In the environment variables (starting line 20) we have two definitions, one for our token, another one for the address of the running vault instance. The first is the token we use for our dev server as well as accessing that server (remember: we define the token and use it in our script for the dev server). The address needs to be defined because by default vault will try and use https. Looks kind of silly that you need to define the local server, but that's alright. The next part is adding our script that will run and configure the Vault server. 
+The `vault` section is mostly straight forward. In the environment variables (starting line 20) we have two definitions, one for our token, another one for the address of the running vault instance. The first is the token we use for our dev server as well as accessing that server (remember: we define the token and use it in our script for the dev server). The next variable needs to be defined because by default vault will try and use https. Looks kind of silly that you need to define the local server, but that's alright. The `volume` section adds our script to the container from our local disk, and then we override the default command to run that script.
 
 # Actually using this
 
 Alright, we now have all of this crazy stuff, how exactly do I use any of this? Well, let's demonstrate that with running inside of this local project, not connecting any code. Just making sure things are running and that we can demonstrate they are running.
 
-First, how do I start this up? Well run `docker-compose up`. This brings the whole system up. The whole point of what we did before with the seeding and such is that one command will give you a working system. If you go read through all of the output that gives you, you will see that the database was started and initialized, vault was started and initialized, and vault was seeded with our initial configuration. 
+First, how do I start this up? Well run `docker-compose up`. This brings the whole system up. The whole point of what we did before with the seeding and such is that one command will give you a working system. If you go read through all of the output that gives you, you will see that the database was started and initialized and vault was started and initialize. 
 
 Next, let's go ahead and see how to connect to the database. One neat way is we can actually get connected to our running instance and execute `psql` through that. You can do that by `docker-compose exec database psql -U admin -d mydb`. If you ran that, you should now be inside of `psql` prompt that is connect to the database.  
 
@@ -184,7 +183,7 @@ VAULT_SETTINGS=$(docker-compose exec vault vault read --format=json dbs/creds/my
 VAULT_USERNAME=$(echo $VAULT_SETTINGS | docker run --rm -i colstrom/jq -r '.data.username')
 docker-compose exec database psql -U $VAULT_USERNAME -d mydb
 ``` 
-The first part is capturing a vault token by executing `vault read` inside of one of the `vault-seed` container. This will create a JSON object that looks something like this:
+The first part is capturing a vault token by executing `vault read` inside of one of the `vault` container. This will create a JSON object that looks something like this:
 
 ```json
 {
