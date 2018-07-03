@@ -29,7 +29,7 @@ Looking over this we will notice the default `postgres` role is renamed to `clou
 
 # Vault Roles
 
-Now we are going to setup our roles. Instead of just having one we are going to have three all with very specific purposes. The first role is `admin`. This role sounds like it is in that it will be the role we can use to create tables and such. This role will primarily be used by the system we use to do our DDL changes. Next will be the role of `app`. This role will be used for the actual apps. It will only have select, insert, update, and delete permissions. 
+Now we are going to setup our roles. Instead of just having one we are going to have three. The first role is `admin`. This role is used when tables and other database objects will need to be created. This role will primarily be used by the system we use to do our DDL changes. Next will be the `app` role. This role will be used with the actual application. It will only have select, insert, update, and delete permissions. Third, there is a `readonly` role. Certain aspects of an application may not need insert, update, or delete. So we create this 3rd role for parts of the application we know are only reading from the database.
 
 Let's see what that looks like in our vault setup script
 
@@ -102,3 +102,17 @@ EOM
 # Wait for vault server to finish
 wait
 ```
+
+# Migrations
+
+Now that you have all of these fancy temporary roles to play with, the next big hurdle to cross in Postgres land is the playing of roles when creating tables. Because the admin role is temporary we have to take extra pre-caution to permissions. By default (at least in Postgres 9.6) what ever role creates the table is what is assigned to that table. That can create problems down the road because of our temporary role assignment. To mitigate that, what ever is doing our migrations needs to run this command:
+
+```sql
+REASSIGN OWNED BY current_user TO "cloudsqlsuperuser";
+```
+
+This command will reassign all of the objects just created back to the common role of `cloudsqlsuperuser`. This way, after the temporary admin role is gone, the objects are in the correct permissions. 
+
+# Demo
+
+Now that we have all of that together, I have put together a demo repository with all of the pieces together for demonstration purposes. This demo will setup all of the needed services, use a migration on the database to get the schema where it needs to be, and allow you to connect with a node service to demonstrate what is needed.
