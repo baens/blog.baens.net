@@ -3,17 +3,21 @@ title: "Setting a development environment with Vault and Postgres on Google Clou
 date: 2018-06-13
 ---
 
-This blog post is going to build off my previous one of building up a development envionrment with vault and postgres. This time though, we are going to get a better targted environment for the postgres flavor that is on GCP. There are a few things we will need to tweak, as well as we are going to setup 3 roles that we can retrieve from vault. 
+This blog post is going to build off [my previous one]() on setting up a development environment with [Postgres]() and [Vault](). This time though, we are going to tweak the environment for the Postgres to better match the behavior in [Google Cloud SQL version of Postgres](). Along with the basic tweaks to Postgres, we will also setup Vault to provide 3 different roles. 
+
+# Phiolsphy of this all
+
+Explanation of why we are setting up vault users and these layers. Also maybe touch on why docker-compose s
 
 # Initial workspace 
 
-Taking from my previous blog post, I will assume that all the settings are there to get a postgres and vault instance up and running. This means that vault and postgres are already talking and postgres has SSL setup.
+Taking from my previous blog post, we will not walk through what was provided by the [last repository]. But instead we will add tweaks and improvements of things. So let's get started with Postgres and add what is needed there, then work with Vault.
 
 # Initial postgres SQL
 
-The first thing we are going to add is setting up the database with a few roles. These roles will mimic what is given to use in GCP. We will also make sure the schema has the correct permissions and roles setup so we can simulate what it would be like if we were actually working against it.
+The first thing we are going to add is setting up the database with a few roles that Google SQL has. These roles will mimic what is given to use in Google SQL. We will also make sure the schema has the correct permissions and roles setup so we can simulate what it would be like if we were actually working against it.
 
-This is what that inital SQL looks like:
+This is what that initial SQL looks like:
 
 ```sql
 ALTER ROLE postgres RENAME TO cloudsqladmin;
@@ -22,10 +26,9 @@ ALTER DATABASE mydb OWNER TO cloudsqlsuperuser;
 CREATE ROLE "postgres" WITH LOGIN CREATEDB CREATEROLE IN ROLE cloudsqlsuperuser;
 ``` 
 
-Now remember, I am using the database name of "mydb". This is not set in stone and can be changed. 
+Take note, I am using the database name of "mydb". This is not set in stone and can be changed. In my images that I use on a day to day basis, I actually have this configurable. It starts as "mydb" then I rename it as the last operation.  
 
-
-Looking over this we will notice the default `postgres` role is renamed to `cloudsqladmin`. That is because the only super user role is that `cloudsqladmin` in Google's Postgres versnion and we want to simulate that. Next is the common role for everything, which is `cloudsqlsuperuser`. This is the role we are going to reassign back to everything. More on that later.
+Looking over this we will notice the default `postgres` role is renamed to `cloudsqladmin`. That is because the only super user role is that `cloudsqladmin` in Google's Postgres version and we want to simulate that. Next is the common role for everything, which is `cloudsqlsuperuser`. This is the role we are going to reassign back to everything. More on that later.
 
 # Vault Roles
 
@@ -103,9 +106,11 @@ EOM
 wait
 ```
 
+One thing I want to point out is the TTLs of these users. These are just for demonstration purposes. In production, these roles should last a few days and then have to be renewed after a few weeks. This is just to allow testing locally if the credential rotation works. 
+
 # Migrations
 
-Now that you have all of these fancy temporary roles to play with, the next big hurdle to cross in Postgres land is the playing of roles when creating tables. Because the admin role is temporary we have to take extra pre-caution to permissions. By default (at least in Postgres 9.6) what ever role creates the table is what is assigned to that table. That can create problems down the road because of our temporary role assignment. To mitigate that, what ever is doing our migrations needs to run this command:
+Now that you have all of these fancy temporary roles to play with, let's investigate migrations. We need to pay extra close attention to this in Postgres. When a table, or any other object in the database for that matter, is created. The owner of that object is the role of that created it. Now that we have a temporary role that we are creating those objects, we need to pay attention to where the ownership of the objects ends up. What's nice about this is Postgres actually has a very clean way of cleaning this up. It actually looks like this:
 
 ```sql
 REASSIGN OWNED BY current_user TO "cloudsqlsuperuser";
@@ -115,4 +120,5 @@ This command will reassign all of the objects just created back to the common ro
 
 # Demo
 
-Now that we have all of that together, I have put together a demo repository with all of the pieces together for demonstration purposes. This demo will setup all of the needed services, use a migration on the database to get the schema where it needs to be, and allow you to connect with a node service to demonstrate what is needed.
+Now that we have all of that together, I have put together a demo repository with all of the pieces together for demonstration purposes. This demo will setup all of the needed services, use a migration (using Flyway) on the database to get the schema where it needs to be, and allow you to connect with a Node service to demonstrate what is needed.
+
