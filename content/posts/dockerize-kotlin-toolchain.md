@@ -29,7 +29,7 @@ This is a fairly straight forward `docker` command, but just in case you have ne
 
 Alright, let's test this and see what happens!
 
-<video width="640" autoplay>
+<video width="640" autoplay playsinline loop muted>
     <source src="/videos/gradle-first-build.mov" type="video/mp4">
 </video>
 
@@ -61,7 +61,7 @@ I'm not going to go much into this file since I already explained it in the othe
 
 Let's build and run this now!
 
-<video width="640" autoplay>
+<video width="640" autoplay playsinline loop muted>
     <source src="/videos/docker-build-and-run.mov" type="video/mp4">
 </video>
 
