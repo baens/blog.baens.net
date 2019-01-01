@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.42" /><link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600" rel="stylesheet">
+  <meta name="generator" content="Hugo 0.53" /><link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600" rel="stylesheet">
   <link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
   
@@ -74,8 +74,8 @@
 
 <p>One of requirements I&rsquo;ve had to fill is that I need a running Postgres instance with SSL turned on. To create the needed SSL files I&rsquo;ve created this script to create all the necessary files:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/bash
-</span><span style="color:#75715e"></span><span style="color:#75715e"># Creates SSL certificates need for postgres
-</span><span style="color:#75715e"></span>
+</span><span style="color:#75715e"></span><span style="color:#75715e"># Creates SSL certificates need for postgres</span>
+
 OUTPUT_FOLDER<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>dirname <span style="color:#e6db74">&#34;</span>$0<span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">)</span><span style="color:#e6db74">/../run/ssl-files&#34;</span>
 
 mkdir -p $OUTPUT_FOLDER
@@ -132,16 +132,16 @@ cat <span style="color:#e6db74">&lt;&lt;EOM &gt;&gt; ${PGDATA}/postgresql.conf
 
 <p>The next script is related to Vault. This script will start vault then configure vault to be able to create secrets for our database. The script looks like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/sh
-</span><span style="color:#75715e"></span><span style="color:#75715e"># Run a vault dev server and configure that instance for the database
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e"># Capture the token defined in the environment and make it our dev server token so they match
-</span><span style="color:#75715e"></span>export VAULT_DEV_ROOT_TOKEN_ID<span style="color:#f92672">=</span>$VAULT_TOKEN
+</span><span style="color:#75715e"></span><span style="color:#75715e"># Run a vault dev server and configure that instance for the database</span>
 
-<span style="color:#75715e"># Start vault server and place in background
-</span><span style="color:#75715e"></span>vault server -dev &amp;
+<span style="color:#75715e"># Capture the token defined in the environment and make it our dev server token so they match</span>
+export VAULT_DEV_ROOT_TOKEN_ID<span style="color:#f92672">=</span>$VAULT_TOKEN
 
-<span style="color:#75715e"># Wait for server to start
-</span><span style="color:#75715e"></span>sleep <span style="color:#ae81ff">2</span>
+<span style="color:#75715e"># Start vault server and place in background</span>
+vault server -dev &amp;
+
+<span style="color:#75715e"># Wait for server to start</span>
+sleep <span style="color:#ae81ff">2</span>
 
 echo <span style="color:#e6db74">&#34;Enabling database plugin&#34;</span>
 vault secrets enable -path<span style="color:#f92672">=</span>dbs database
@@ -164,8 +164,8 @@ vault write dbs/roles/mydb-admin <span style="color:#ae81ff">\
 </span><span style="color:#e6db74">                         VALID UNTIL &#39;{{expiration}}&#39;; \
 </span><span style="color:#e6db74">                         GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \&#34;{{name}}\&#34;;&#34;</span>
 
-<span style="color:#75715e"># Wait for vault server to finish
-</span><span style="color:#75715e"></span>wait</code></pre></div>
+<span style="color:#75715e"># Wait for vault server to finish</span>
+wait</code></pre></div>
 <p>This script is intended to be run when the vault container starts. This means that this script is responsible to ensure the server starts and stays running. Once that is complete, we then write out our configuration using the <code>vault</code> command. After that is all done, we let the script hang with the <code>vault server</code> portion with the <code>wait</code> command. This is because the script is what actually started the server and when this script ends, so will the docker container.</p>
 
 <p>One of the first bits in the script is to take <code>VAULT_TOKEN</code> variable that is passed and make that our dev server token. Now, a Vault token is your key in getting things out of vault. To ensure that we know the key, instead of doing the default behavior of generating a random key, we tell the server which token to use. And to make it even easier, we let the docker container pass us one token through <code>VAULT_TOKEN</code> and we tie that to the <code>VAULT_DEV_ROOT_TOKEN_ID</code> so we don&rsquo;t have to define that twice. And just to be extra clear, <code>VAULT_TOKEN</code> is what a client uses, the <code>VAULT_DEV_ROOT_TOKEN_ID</code> is what the server itself uses. If we didn&rsquo;t provide that dev token, the server would generate a random token that makes it a lot harder to development against. This is the difference between our dev Vault instance and a production one. In dev, we can define that token up front, in production, those are randomly generated for you.</p>
@@ -282,6 +282,7 @@ docker-compose exec database psql -U $VAULT_USERNAME -d mydb</code></pre></div>
       <div class="c-pagination__ctrl">
         <div class="c-pagination__newer">
           
+          <a href="https://blog.baens.net/posts/dockerize-kotlin-toolchain/">Newer</a>
           
         </div>
         <div class="c-pagination__older">
