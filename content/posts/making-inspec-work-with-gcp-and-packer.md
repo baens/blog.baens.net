@@ -11,7 +11,7 @@ When I first set this up, I had to figure out a way to get Inspec to talk to the
 
 Really quick, if you haven't used any of the tools let me explain what I'm trying todo. I want to create an image of a VM that I can just spin up with everything I need. 
 
-So enough yap, let's see what the code looks like. 
+So enough yap, let's see what the code looks like. If you want to see everything put together, [code repository here](https://github.com/baens/code-examples-blog.baens.net/tree/packer-gcp-ssh-key).
 
 # The problems I faced
 
@@ -58,12 +58,47 @@ Execute the `curl` command in the remote shell, then use the `file` provisioner 
 
 # Solving Problem 2: Communicating over SSH
 
-Now that I had the IP address, I need to communicate from Inpsec to that IP. Inspec has several ways of communicating with the machine. It can do it locally or even execute on a rmeote machine. I wanted to execute locally but communicate on the remote machine so that I didn't have to install anything on the remote box. This lead me down the path that I needed to use SSH to communicate with that remote box. By default SSH requires a username and password, and since I was going to be using this in an automated build environment. Having something prompt for a username and password wasn't going to fly, nevermind the fact that isn't very secure either. So I need to setup a SSH key somehow in the automated process to get logged into the remote box. 
+Now that I had the IP address, I need to communicate from Inpsec to that IP. Inspec has several ways of communicating with the machine. It can do it locally or even execute on a remote machine. I wanted to execute locally but communicate on the remote machine so that I didn't have to install anything on the remote box. This lead me down the path that I needed to use SSH to communicate with that remote box. By default SSH requires a username and password, and since I was going to be using this in an automated build environment. Having something prompt for a username and password wasn't going to fly, never mind the fact that isn't very secure either. So I need to setup a SSH key somehow in the automated process to get logged into the remote box.
 
-* keygen
-* GCP metadata
+[Google cloud provides a way for you to provide a SSH key](https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys#edit-ssh-metadata) that will get installed on the box for you to use. So first let's generate the key. The way Google parses the key information is it looks for comments inside of the key for which user is associated with this. Here is the command I use to generate the key:
 
-# The resulting Packer file
+```bash
+ssh-keygen -f inspec-key -C packer -N '' -m PEM
+```
+
+The command will output a set of SSH key files called `inspec-key` with a comment of `packer` and the `-N` flag is the password to be used (blank in this case). You need to specific the PEM format because some of the Ruby modules that will be loaded can't parse newer OpenSSH key formats. Alright, I now have my SSH key, now I need to place that SSH key for Packer to use when it creates the VM instance. For that you need to modify the builder with a few parameters. Here is what the builder turns into:
+
+```json
+"builders": [
+        {
+            "type": "googlecompute",
+            ........
+            "metadata": {
+                "ssh-keys": "packer:{{user `inspec-key`}}"
+            }
+        }
+    ],
+```
+
+The `metadata/ssh-keys` is the important part. You add the metadata with first the username, then the contents of the key. This tripped me up at first because I thought the key had already been setup with all of the relevant information, but you need to specify the username again.
+
+Alright, now that we have our new instance up and running, how do we connect Inspec? Well, again, I didn't really want to have to install another tool so let's use docker to run the actual tool. The docker command will look like this:
+
+```bash
+docker run --rm -v $(pwd):/workspace -w /workspace chef/inspec:3.2.7 detect . -t ssh://packer@$( cat host ) -i inspec-key
+```
+
+Few things to explain in this:
+
+* `-v $(pwd):/workspace -w /workspace` - Take your current directory and mount it at `/workspace` and make the current directory when the docker contianer is running inside of that directory.
+* `chef/inspec:3.2.7 detect` - The docker image and the command to run. For the demo I used `detect` just to show you it connects. When you actually want to run tests you run `exec`.
+* `-t ssh://packer@$( cat host ) -i inspec-key` - Here are a few of the magic bits. Tell Inspect to connect through `ssh` with the data from the `host` file we downloaded in the previous step. Next, use the `inspec-key` file we created earlier. 
+
+Now that we have all the pieces, let's see everything put together. 
+
+# The resulting Packer file and the test run
+
+Alright, all together this will look like this:
 
 {{< highlight json "linenos=table" >}}
 {
@@ -96,12 +131,14 @@ Now that I had the IP address, I need to communicate from Inpsec to that IP. Ins
         },
         {
             "type": "shell-local",
-            "command": "docker run --rm -v $(pwd):/workspace -w /workspace chef/inspec:3.2.7 detect . -t ssh://packer@$( cat host ) -i inspec-key"
+            "command": "docker run --rm -v $(pwd):/workspace -w /workspace chef/inspec:3.2.7 detect -t ssh://packer@$( cat host ) -i inspec-key"
         }
     ]
 }
 {{< / highlight >}}
 
-Let me walk through these line by line:
+The builder is setup with our keys for us to connect. The tool then downloads the IP of the server, and we use that with Inspec to connect to the host. It should look something like this when it runs:
+
+[All source code can be found on github if you want to run this yourself.](https://github.com/baens/code-examples-blog.baens.net/tree/packer-gcp-ssh-key)
 
 
