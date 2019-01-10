@@ -5,27 +5,25 @@ date: 2019-01-07
 
 # Background
 
-This blog post aims to help anyone trying to make a [Packer]() image, testing with [Inspec](), on the [Google Cloud Platform](). I have recently been using the these tools for my day-to-day and had come across an interesting problem. Hopefully this helps someone out there to make this work.
+This blog post aims to help anyone trying to make a [Packer](https://www.packer.io/) image, tested with [Inspec](https://www.inspec.io/), on the [Google Cloud Platform](https://cloud.google.com/). I have recently been using the these tools for my day-to-day and I wanted to make these three tools work together, which was surprisingly difficult. This blog post will hopefully help anyone out there that may be trying todo the same.
 
-When I first set this up, I had to figure out a way to get Inspec to talk to the newly created VM through the provisioning steps of Packer. I also didn't want to install anything extra on the new VM because then I would have to clean that up. This proved to be more difficult then I had realized but in the end I have at least the basic pipeline working. 
-
-Really quick, if you haven't used any of the tools let me explain what I'm trying todo. I want to create an image of a VM that I can just spin up with everything I need. 
+What I want from these tools is have Packer spin up a new VM, run all the build steps, when test that VM with Inspec. Now, me being me, I didn't want to clutter up the VM with any more installed then it really needed, so I didn't want Inspec running with all of its tools installed on the new VM. That means I wanted Inspec to run from my box then connect through SSH to the new box. Sounds simple right? Well, there were enough gotchas and lack of search resources out there that I felt I needed to write this up.
 
 So enough yap, let's see what the code looks like. If you want to see everything put together, [code repository here](https://github.com/baens/code-examples-blog.baens.net/tree/packer-gcp-ssh-key).
 
 # The problems I faced
 
-So let me walk through the problems I encountered along this journey that I will outline and show answers to.
+So let me walk through the problems I encountered along this journey that I will try and demonstrate answers to.
 
-Problem #1: The first problem I hit was that I needed Inspec to talk to the new VM, but packer doesn't provide those variables very easily. The first thing I had todo was get the IP address somehow to the Inspec command to tell where to go looking for the VM.
+Problem #1: The first problem I hit was that I needed Inspec to talk to the new VM, but Packer doesn't provide those variables very easily. What I needed was the host IP of the VM running in the cloud. Since Packer didn't provide that out of the box, I had to figure out a way to get around that.
 
-Problem #2: Once I had the VM IP, I had to connect the Inspec process somehow to that VM. The main method of choice is SSH. This meant I needed to establish a key to login and tell the GCP VM of that key. Again, one would think this would happen out of the box, but that wasn't the case. I believe this is a bug in Packer but we can go through that later. 
+Problem #2: Once I did establish a connection, I then needed to authenticate Inspec with the VM. Inspec could natively connect over SSH, so creating and establishing a SSH key to login with was the obvious choice. However, Packer again didn't provide a convenient way of doing this so I need to establish that key myself and set a few manual things to make that work.
 
 # Solving Problem 1: Getting the IP of the Packer build in GCP
 
-This sounds easy enough but is surprising difficult: how do I get the IP of the currently running VM where all I can do is execute CLI commands? One approach might ping some remote web site that tell you your public IP, but that seems ridiculous to introduce another layer outside of your control. My search stumbled upon a number of examples of how to do this on AWS but very little on GCP. However, that did give me a framework of what todo.
+This sounds easy enough but is surprising difficult: how do I get the IP of the currently running VM that Packer is communicating with? One approach might ping some remote web site that tell you your public IP, but that seems ridiculous to introduce another layer outside of your control. My search stumbled upon a number of examples of how to do this on AWS but very little on GCP. However, that did give me an idea of what todo.
 
-What people showed what to use was called the Metadata server. The Metadata server is a service for every VM running on [AWS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html) (and [GCP](https://cloud.google.com/compute/docs/storing-retrieving-metadata)) that can tell you about the instance you are running on. This was the thing I needed, I found the [documentation for GCP](https://cloud.google.com/compute/docs/storing-retrieving-metadata) and sure enough, it had information on all of the exposed IP addresses. The particular address I needed was http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip.
+What people use on AWS often is called the Metadata server. The Metadata server is a service for every VM running on [AWS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html) (and [GCP](https://cloud.google.com/compute/docs/storing-retrieving-metadata)) that can tell you about the instance you are running on. This was the thing I needed, I found the [documentation for GCP](https://cloud.google.com/compute/docs/storing-retrieving-metadata) and sure enough, it had information on all of the exposed IP addresses. The particular address I needed was located at this URL: http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip. And whats even better was that this was generic across instances so I didn't have to do some fancy logic depending on the box. 
 
 Now that I have the IP address, how would I exactly retrieve that information from the command line. Thankfully, curl was already installed so I crafted this command:
 
@@ -35,7 +33,7 @@ curl  -H \"Metadata-Flavor: Google\" metadata.google.internal/computeMetadata/v1
 
 And executed that and viola, the IP address I needed. 
 
-Now, something to be pointed out. That HTTP header we added (`Metadata-Flavor: Google`) is required. This is because the service only responds to commands with this header because otherwise these might be erroneous requests that are pointed to this service by accident. 
+Now, something to be pointed out. That HTTP header we added (`Metadata-Flavor: Google`) is required. This is a safe guard to protect you incase you accidentally point something wrong to this location. 
 
 Now that I have my IP address, how do I use it? Again, long searches didn't show a way to pipeline variables from one Packer step to another so what was I going todo? I'm not 100% sure how I stumbled upon but I found a very neat trick of downloading the file after you created it. Here is what that will look like in Packer's provisioning steps:
 
@@ -54,7 +52,7 @@ Now that I have my IP address, how do I use it? Again, long searches didn't show
 ]
 ```
 
-Execute the `curl` command in the remote shell, then use the `file` provisioner to download that file. This will then create a file with the contents of the IP address that you can use for later steps.
+And that solved the problem. Just have to create a file with data from a special internal endpoint, then download that file for use in next steps. Easy!
 
 # Solving Problem 2: Communicating over SSH
 
@@ -66,13 +64,15 @@ Now that I had the IP address, I need to communicate from Inpsec to that IP. Ins
 ssh-keygen -f inspec-key -C packer -N '' -m PEM
 ```
 
-The command will output a set of SSH key files called `inspec-key` with a comment of `packer` and the `-N` flag is the password to be used (blank in this case). You need to specific the PEM format because some of the Ruby modules that will be loaded can't parse newer OpenSSH key formats. Alright, I now have my SSH key, now I need to place that SSH key for Packer to use when it creates the VM instance. For that you need to modify the builder with a few parameters. Here is what the builder turns into:
+The command will output a set of SSH key files called `inspec-key` with a comment of `packer` and the `-N` flag is the password to be used (blank in this case). You need to specify the PEM format because some of the Ruby modules that will be loaded can't parse newer OpenSSH key formats. 
+
+Alright, I now have my SSH key, now I need to place that SSH key for Packer to use when it creates the VM instance. For that you need to modify the builder with a few parameters. Here is what the builder turns into:
 
 ```json
 "builders": [
         {
             "type": "googlecompute",
-            ........
+            ...
             "metadata": {
                 "ssh-keys": "packer:{{user `inspec-key`}}"
             }
@@ -80,21 +80,19 @@ The command will output a set of SSH key files called `inspec-key` with a commen
     ],
 ```
 
-The `metadata/ssh-keys` is the important part. You add the metadata with first the username, then the contents of the key. This tripped me up at first because I thought the key had already been setup with all of the relevant information, but you need to specify the username again.
+The `metadata/ssh-keys` is the important part. You add the metadata with the username, then the contents of the key. This tripped me up at first because I thought the key had already been setup with all of the relevant information, but trial and error found the right format. And just to be clear, the format is `<username>:<ssh public key data>`. 
 
 Alright, now that we have our new instance up and running, how do we connect Inspec? Well, again, I didn't really want to have to install another tool so let's use docker to run the actual tool. The docker command will look like this:
 
 ```bash
-docker run --rm -v $(pwd):/workspace -w /workspace chef/inspec:3.2.7 detect . -t ssh://packer@$( cat host ) -i inspec-key
+docker run --rm -v $(pwd):/workspace -w /workspace chef/inspec:3.2.7 detect -t ssh://packer@$( cat host ) -i inspec-key
 ```
 
 Few things to explain in this:
 
-* `-v $(pwd):/workspace -w /workspace` - Take your current directory and mount it at `/workspace` and make the current directory when the docker contianer is running inside of that directory.
+* `-v $(pwd):/workspace -w /workspace` - Take your current directory and mount it at `/workspace` and make the current directory when the docker container is running inside of that directory.
 * `chef/inspec:3.2.7 detect` - The docker image and the command to run. For the demo I used `detect` just to show you it connects. When you actually want to run tests you run `exec`.
 * `-t ssh://packer@$( cat host ) -i inspec-key` - Here are a few of the magic bits. Tell Inspect to connect through `ssh` with the data from the `host` file we downloaded in the previous step. Next, use the `inspec-key` file we created earlier. 
-
-Now that we have all the pieces, let's see everything put together. 
 
 # The resulting Packer file and the test run
 
@@ -138,6 +136,8 @@ Alright, all together this will look like this:
 {{< / highlight >}}
 
 The builder is setup with our keys for us to connect. The tool then downloads the IP of the server, and we use that with Inspec to connect to the host. It should look something like this when it runs:
+
+![Demo of the build](/images/cloud-build.gif)
 
 [All source code can be found on github if you want to run this yourself.](https://github.com/baens/code-examples-blog.baens.net/tree/packer-gcp-ssh-key)
 
