@@ -6,10 +6,20 @@
     <description>Recent content in Posts on Erik Lindblom&#39;s Ramblings</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 31 Dec 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 11 Jan 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.baens.net/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Making Inspec with SSH work with Packer on the Google Cloud Platform</title>
+      <link>https://blog.baens.net/posts/making-inspec-work-with-gcp-and-packer/</link>
+      <pubDate>Fri, 11 Jan 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.baens.net/posts/making-inspec-work-with-gcp-and-packer/</guid>
+      <description>Background This blog post aims to help anyone trying to make a Packer image, tested with Inspec, on the Google Cloud Platform. I have recently been using the these tools for my day-to-day and I wanted to make these three tools work together, which was surprisingly difficult. This blog post will hopefully help anyone out there that may be trying todo the same.
+What I want from these tools is have Packer spin up a new VM, run all the build steps, then test that VM with Inspec.</description>
+    </item>
     
     <item>
       <title>Dockerize the Kotlin toolchain</title>
