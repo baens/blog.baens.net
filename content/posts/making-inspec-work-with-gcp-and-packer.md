@@ -1,13 +1,13 @@
 ---
 title: "Making Inspec with SSH work with Packer on the Google Cloud Platform"
-date: 2019-01-07
+date: 2019-01-11
 ---
 
 # Background
 
 This blog post aims to help anyone trying to make a [Packer](https://www.packer.io/) image, tested with [Inspec](https://www.inspec.io/), on the [Google Cloud Platform](https://cloud.google.com/). I have recently been using the these tools for my day-to-day and I wanted to make these three tools work together, which was surprisingly difficult. This blog post will hopefully help anyone out there that may be trying todo the same.
 
-What I want from these tools is have Packer spin up a new VM, run all the build steps, when test that VM with Inspec. Now, me being me, I didn't want to clutter up the VM with any more installed then it really needed, so I didn't want Inspec running with all of its tools installed on the new VM. That means I wanted Inspec to run from my box then connect through SSH to the new box. Sounds simple right? Well, there were enough gotchas and lack of search resources out there that I felt I needed to write this up.
+What I want from these tools is have Packer spin up a new VM, run all the build steps, then test that VM with Inspec. Also, I didn't want to clutter up the VM with anything more installed then it really needed, so I didn't want Inspec running with all of its tools installed on the new VM. That means I wanted Inspec to run from my box then connect through SSH to the new box. Sounds simple right? Well, there were enough gotchas and lack of search resources out there that I felt I needed to write this up.
 
 So enough yap, let's see what the code looks like. If you want to see everything put together, [code repository here](https://github.com/baens/code-examples-blog.baens.net/tree/packer-gcp-ssh-key).
 
@@ -19,13 +19,13 @@ Problem #1: The first problem I hit was that I needed Inspec to talk to the new 
 
 Problem #2: Once I did establish a connection, I then needed to authenticate Inspec with the VM. Inspec could natively connect over SSH, so creating and establishing a SSH key to login with was the obvious choice. However, Packer again didn't provide a convenient way of doing this so I need to establish that key myself and set a few manual things to make that work.
 
-# Solving Problem 1: Getting the IP of the Packer build in GCP
+# Solving Problem 1: Getting the IP of the Packer VM in GCP
 
-This sounds easy enough but is surprising difficult: how do I get the IP of the currently running VM that Packer is communicating with? One approach might ping some remote web site that tell you your public IP, but that seems ridiculous to introduce another layer outside of your control. My search stumbled upon a number of examples of how to do this on AWS but very little on GCP. However, that did give me an idea of what todo.
+This sounds easy enough but is surprising difficult: how do I get the IP of the currently running VM that Packer is communicating with? One approach might ping some remote web site that tell you your public IP, but that seems ridiculous to introduce another layer outside of your control. My search stumbled upon a number of examples of how to do this on AWS but very little on GCP. However, people using AWS did give me an idea of what todo, or at the very least what to search for.
 
-What people use on AWS often is called the Metadata server. The Metadata server is a service for every VM running on [AWS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html) (and [GCP](https://cloud.google.com/compute/docs/storing-retrieving-metadata)) that can tell you about the instance you are running on. This was the thing I needed, I found the [documentation for GCP](https://cloud.google.com/compute/docs/storing-retrieving-metadata) and sure enough, it had information on all of the exposed IP addresses. The particular address I needed was located at this URL: http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip. And whats even better was that this was generic across instances so I didn't have to do some fancy logic depending on the box. 
+What people use on AWS often is called the Metadata server. The Metadata server is a service for every VM running on [AWS](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html) (and [GCP](https://cloud.google.com/compute/docs/storing-retrieving-metadata)) that can tell you about the instance you are running on. This was the thing I needed, I found the [documentation for GCP](https://cloud.google.com/compute/docs/storing-retrieving-metadata) and sure enough, it had information on all of the exposed IP addresses. The particular address I needed was located at this URL: `http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip`. And whats even better was that this was generic across instances so I didn't have to do some fancy logic depending on the box. 
 
-Now that I have the IP address, how would I exactly retrieve that information from the command line. Thankfully, curl was already installed so I crafted this command:
+Now that I have the HTTP address of where I can get the external IP address, how would I exactly retrieve that information from the command line. Thankfully, curl was already installed so I crafted this command:
 
 ```
 curl  -H \"Metadata-Flavor: Google\" metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip
@@ -52,7 +52,7 @@ Now that I have my IP address, how do I use it? Again, long searches didn't show
 ]
 ```
 
-And that solved the problem. Just have to create a file with data from a special internal endpoint, then download that file for use in next steps. Easy!
+And that solved the problem. Just have to create a file with data from a special internal endpoint, then download that file for use in next steps. Easy! Or at least easy once you work it out. Go figure!
 
 # Solving Problem 2: Communicating over SSH
 
@@ -78,6 +78,12 @@ Alright, I now have my SSH key, now I need to place that SSH key for Packer to u
             }
         }
     ],
+```
+
+And here is what the command would look like to run Packer:
+
+```bash
+packer build -var inspec-key=$(cat inspec-key.pub) image.json
 ```
 
 The `metadata/ssh-keys` is the important part. You add the metadata with the username, then the contents of the key. This tripped me up at first because I thought the key had already been setup with all of the relevant information, but trial and error found the right format. And just to be clear, the format is `<username>:<ssh public key data>`. 
