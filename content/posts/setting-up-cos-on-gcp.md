@@ -76,4 +76,51 @@ Let's now take our image and push it up into a repository. This is a little beyo
 
 Now that we have our image up in a registry, we need some way to authenticate with that registry on our VM. If you were doing this locally, I bet you ran a `docker login` command at some point to get authenticated with that registry. Well, thats exactly what we are going to do with this VM as well.
 
-So how do we going about running that command? Well, COS has a toolkit installed called [cloud-init](https://cloudinit.readthedocs.io/en/latest/). Briefly, `cloud-init` is a set of tools to manage cloud images. These help provide ways to create startup scripts and the like to get your cloud image running in exactly the way you want. They are used on most cloud providers and most distros have hooks or tools that can be used. For this particular case we will be interested tapping into providing user scripts that can run at startup. For this, we will be providing a `user-data` metadata variable that provides a `cloud-init` configuration. Sounds easy right? Well, let's go!
+So how do we going about running that command? Well, COS has a toolkit installed called [cloud-init](https://cloudinit.readthedocs.io/en/latest/). `Cloud-init` is a set of tools to manage cloud images. These help provide ways to create startup scripts and the like to get your cloud image running in exactly the way you want. They are used on most cloud providers and most distros have hooks or tools that can be used. For this particular case we will be interested tapping into providing user scripts that can run at startup. For this, we will be providing a `user-data` metadata variable that provides a `cloud-init` configuration. Sounds easy right? Well, let's go!
+
+Let's take a look at what this `cloud-init` configuration file may look like here:
+
+{{< highlight yml "linenos=table">}}
+users:
+- name: cloudservice
+  uid: 2000
+
+write_files:
+- path: /etc/systemd/system/myservice.service
+  permissions: 0644
+  owner: root
+  content: |
+    [Unit]
+    Description=My Service
+    Requires=docker.service network-online.target
+    After=docker.service network-online.target
+
+    [Service]
+    Environment="HOME=/home/cloudservice"
+    ExecStartPre=/usr/bin/docker login %REGISTRY% -u %USERNAME% -p %PASSWORD%
+    ExecStart=/usr/bin/docker run --network=host --rm --name=myservice %DOCKER_IMAGE%
+    ExecStop=/usr/bin/docker stop myservice
+    Restart=on-failure
+    RestartSec=10
+
+    [Install]
+    WantedBy=multi-user.target
+
+runcmd:
+- systemctl daemon-reload
+- systemctl enable --now --no-block myservice.service
+{{< / highlight >}}
+
+This configuration file is used as a template that will generate us a configuration file for our `cloud-init` process. Let's point out some of the more important lines then I'll explain what the variables are
+
+**Line 1 - 3**: Sets up a user dedicated to running this service. This creates a security sandbox because this user will not have any permissions assigned to it except to run this container.
+
+**Line 5 - 24**: This is the file contents of `/etc/systemd/system/myservice.service`. As the path suggests, this is a `systemd` service file that will run our docker container. This section has information about the file permissions as well as the actual content of the file embedded in this configuration.
+
+**Line 10 - 13**: Sets the description of the service as well as any requirements the service needs to run. In this case, we want the network to be online and docker to be running before this service starts.
+
+**Line 15 - 21**: Sets how the service starts and stops. This is some of the more important bits. First, we are setting up the home directory to be the user that we had created earlier. Kind of sandboxing and isolating where this is running. Next the `ExecStartPre` is where some of this magic starts to come into place. This is where the `docker login` command is executed. All of the parameters are currently variables and can be replaced but this is where the magic happens. Next the `ExecStart` actually runs the `docker run` command. One important thing to note is the `--network=host` flag. We want the docker container to be using the host's network interfaces instead of creating the normal isolated network stack. This way the container can act just like the host on the network and have all ports exposed without any further magic.
+
+**Line 20 - 21**: This sets up the service to restart on failure and wait 10 seconds between each retry
+
+**Line 26 - 28**: This section runs once the configuration has been read and all other parts are completed. This acts like a startup script. First we reload the `systemd` daemon to read in our configuration files, then we enable and queue up startup of our service. This is really important to note,the `--now --no-block` commands are important here because we want the service to start up now, but we also want it queued in the `systemd` process so that it waits for the Docker service and network connects to be online. Otherwise our container may not start right because Docker isn't ready or we can't reach out to the internet to get our container.
