@@ -26,7 +26,7 @@ Take note of the external IP address that is spit out after running that command
 Next we will need to expose that instance with a firewall rule:
 
 ```
-gcloud compute firewall-rules create allow-http-traffic --rules tcp:80 --target-tags http-traffic
+gcloud compute firewall-rules create allow-http-traffic --target-tags http-traffic --allow tcp:80
 ```
 
 Once that is complete, go ahead and try and hit the external IP address of that image. You should now see a "Welcome to nginx!" screen.
@@ -81,6 +81,8 @@ So how do we going about running that command? Well, COS has a toolkit installed
 Let's take a look at what this `cloud-init` configuration file may look like here:
 
 {{< highlight yml "linenos=table">}}
+#cloud-config
+
 users:
 - name: cloudservice
   uid: 2000
@@ -113,14 +115,20 @@ runcmd:
 
 This configuration file is used as a template that will generate us a configuration file for our `cloud-init` process. Let's point out some of the more important lines then I'll explain what the variables are
 
-**Line 1 - 3**: Sets up a user dedicated to running this service. This creates a security sandbox because this user will not have any permissions assigned to it except to run this container.
+**Line 1**: This flags this file as a cloud config file. If you don't have this, the system won't pick it up and process it.
 
-**Line 5 - 24**: This is the file contents of `/etc/systemd/system/myservice.service`. As the path suggests, this is a `systemd` service file that will run our docker container. This section has information about the file permissions as well as the actual content of the file embedded in this configuration.
+**Line 3 - 5**: Sets up a user dedicated to running this service. This creates a security sandbox because this user will not have any permissions assigned to it except to run this container.
 
-**Line 10 - 13**: Sets the description of the service as well as any requirements the service needs to run. In this case, we want the network to be online and docker to be running before this service starts.
+**Line 7 - 26**: This is the file contents of `/etc/systemd/system/myservice.service`. As the path suggests, this is a `systemd` service file that will run our docker container. This section has information about the file permissions as well as the actual content of the file embedded in this configuration.
 
-**Line 15 - 21**: Sets how the service starts and stops. This is some of the more important bits. First, we are setting up the home directory to be the user that we had created earlier. Kind of sandboxing and isolating where this is running. Next the `ExecStartPre` is where some of this magic starts to come into place. This is where the `docker login` command is executed. All of the parameters are currently variables and can be replaced but this is where the magic happens. Next the `ExecStart` actually runs the `docker run` command. One important thing to note is the `--network=host` flag. We want the docker container to be using the host's network interfaces instead of creating the normal isolated network stack. This way the container can act just like the host on the network and have all ports exposed without any further magic.
+**Line 12 - 15**: Sets the description of the service as well as any requirements the service needs to run. In this case, we want the network to be online and docker to be running before this service starts.
 
-**Line 20 - 21**: This sets up the service to restart on failure and wait 10 seconds between each retry
+**Line 17 - 23**: Sets how the service starts and stops. This is some of the more important bits. First, we are setting up the home directory to be the user that we had created earlier. Kind of sandboxing and isolating where this is running. Next the `ExecStartPre` is where some of this magic starts to come into place. This is where the `docker login` command is executed. All of the parameters are currently variables and can be replaced but this is where the magic happens. Next the `ExecStart` actually runs the `docker run` command. One important thing to note is the `--network=host` flag. We want the docker container to be using the host's network interfaces instead of creating the normal isolated network stack. This way the container can act just like the host on the network and have all ports exposed without any further magic.
 
-**Line 26 - 28**: This section runs once the configuration has been read and all other parts are completed. This acts like a startup script. First we reload the `systemd` daemon to read in our configuration files, then we enable and queue up startup of our service. This is really important to note,the `--now --no-block` commands are important here because we want the service to start up now, but we also want it queued in the `systemd` process so that it waits for the Docker service and network connects to be online. Otherwise our container may not start right because Docker isn't ready or we can't reach out to the internet to get our container.
+**Line 22 - 23**: This sets up the service to restart on failure and wait 10 seconds between each retry
+
+**Line 28 - 30**: This section runs once the configuration has been read and all other parts are completed. This acts like a startup script. First we reload the `systemd` daemon to read in our configuration files, then we enable and queue up startup of our service. This is really important to note,the `--now --no-block` commands are important here because we want the service to start up now, but we also want it queued in the `systemd` process so that it waits for the Docker service and network connects to be online. Otherwise our container may not start right because Docker isn't ready or we can't reach out to the internet to get our container.
+
+```
+gcloud compute instances create test-nginx --image cos-stable-72-11316-136-0 --image-project cos-cloud --tags http-traffic --metadata-from-file user-data=cloud-init-config.yml
+```
