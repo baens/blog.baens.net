@@ -4,16 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
   
-  <title>Step-by-step: Kotlin and Docker</title>
-  <meta property="og:title" content="Step-by-step: Kotlin and Docker" />
-  <meta name="twitter:title" content="Step-by-step: Kotlin and Docker" />
+  <title>Setting up a Docker container on a Container-Optimized OS running on the Google Cloud</title>
+  <meta property="og:title" content="Setting up a Docker container on a Container-Optimized OS running on the Google Cloud" />
+  <meta name="twitter:title" content="Setting up a Docker container on a Container-Optimized OS running on the Google Cloud" />
   
 
   
 
   <meta name="author" content="Erik Lindblom"/>
   <meta property="og:site_name" content="Erik Lindblom&#39;s Ramblings" />
-  <meta property="og:url" content="https://blog.baens.net/posts/step-by-step-kotlin/" />
+  <meta property="og:url" content="https://blog.baens.net/posts/setting-up-cos-on-gcp/" />
 
   
   <meta name="twitter:card" content="summary" />
@@ -49,16 +49,14 @@
 
 <article class="p-article">
   <header>
-    <h1>Step-by-step: Kotlin and Docker</h1>
+    <h1>Setting up a Docker container on a Container-Optimized OS running on the Google Cloud</h1>
     <div>
       <div class="c-time">
         Posted on
-        <time datetime="2018-02-12T00:00:00Z">
-          Feb 12, 2018
+        <time datetime="2019-03-11T00:00:00Z">
+          Mar 11, 2019
         </time>
       </div>
-      
-      <a href="https://blog.baens.net/tags/kotlin" class="c-tag">kotlin</a>
       
     </div>
   </header>
@@ -66,61 +64,80 @@
   <section id="js-article" class="p-article__body">
     
 
-<p>This is part of a series of blog posts that I&rsquo;ve always wanted todo. <a href="https://blog.baens.net/posts/step-by-step-series/">Read about them here</a>.</p>
+<p>Wow, that title looks like a mouth full doesn&rsquo;t it? So why do this? Isn&rsquo;t there Kubernetes for running Docker containers? Well, sometimes I only need just one container running and I really don&rsquo;t want to add the overhead of having to maintain another Kubernetes clusters. Lame excuse, but this works well for a small installation where I just don&rsquo;t need the power of a full Kubernetes cluster.</p>
 
-<p>For this step-by-step guide let&rsquo;s do something basic and get kotlin compiling and running inside a docker container.</p>
+<p>What exactly is a Container-Optimized OS (COS)? Well, this OS is built by Google to be optimized for being the base operating system of a Kubernetes cluster or even just a simple Docker container. Its built upon the Chromium OS and has a lot of security features baked into it from the onset. For example, the root filesystem is mounted as read only. So the binaries that are on the system don&rsquo;t change, and can&rsquo;t be changed. Go ahead and <a href="https://cloud.google.com/container-optimized-os/docs/">read all about it</a>, the project is a great one.</p>
 
-<p><a href="https://github.com/baens/blog-step-by-step-kotlin">The companion repository is here</a>.</p>
+<p>Here is what I will show you in this blog post. Throughout this blog post, we will use a base <a href="https://hub.docker.com/_/nginx">Nginx Docker image</a> as the container we want to run. We will first use some short cuts the <code>gcloud</code> command provides to run a container on this image. We will then go through what would be required to get a image from a private repository up and running. Let&rsquo;s get started!</p>
 
-<h2 id="step-0-prerequisites">Step 0: Prerequisites</h2>
+<p>All source code is <a href="https://github.com/baens/code-examples-blog.baens.net/tree/cos-gcp-setup">hosted on github</a> as well so you don&rsquo;t have to retype if you don&rsquo;t want too.</p>
 
-<p>I am going to assume you have the following installed and already running. We will be using the local gradle wrapper instance after the initial setup, but you do need it for the initial creation.</p>
+<h1 id="perquisites">Perquisites</h1>
 
-<p>The other one I am going to assume is having a running docker instance.</p>
+<p>This post will assume you have a Google cloud account all setup and a Google cloud project already carved out. If you haven&rsquo;t maybe follow the <a href="https://cloud.google.com/compute/docs/quickstart-linux">quickstart tutorial</a>, then come back.</p>
 
-<ul>
-<li>Java (JDK 1.8.0_144)</li>
-<li>Gradle (to create the initial wrapper)</li>
-<li>Docker (17.12.0-ce-mac49 (21995))</li>
-</ul>
+<p><em>Warning</em>: I will be showing commands that create resources inside of a Google Cloud environment. That means real resources that cost real money. Be careful if you don&rsquo;t want to be charged.</p>
 
-<h2 id="step-1-gradle-https-github-com-baens-blog-step-by-step-kotlin-commit-6ed247244a23eae991693b4a512cda2521892c9c"><a href="https://github.com/baens/blog-step-by-step-kotlin/commit/6ed247244a23eae991693b4a512cda2521892c9c">Step 1: Gradle</a></h2>
+<h1 id="making-gcloud-do-all-the-work">Making gcloud do all the work</h1>
 
-<p>The goal of this step will be to get a gradle wrapper up and running so that we can lock in the gradle version for everyone that will be using this repository.</p>
+<p>Let&rsquo;s do something very basic, we will start up a container using the <code>gcloud</code> commands to run a container on top of the COS VM. Here is what that <code>gcloud</code> command looks like:</p>
 
-<p>Run the following:</p>
-
-<p><code>&gt; gradle wrapper --gradle-version 4.5</code></p>
-
-<p>Verify it works by running:</p>
-
-<pre><code>&gt; ./gradlew -v
-
-------------------------------------------------------------
-Gradle 4.5
-------------------------------------------------------------
-
-Build time:   2018-01-24 17:04:52 UTC
-Revision:     77d0ec90636f43669dc794ca17ef80dd65457bec
-
-Groovy:       2.4.12
-Ant:          Apache Ant(TM) version 1.9.9 compiled on February 2 2017
-JVM:          1.8.0_144 (Oracle Corporation 25.144-b01)
+<pre><code>gcloud compute instances create-with-container nginx-vm --container-image nginx:1.15.8 --tags http-traffic
 </code></pre>
 
-<p>That&rsquo;s it! You can double check that commit that I have associated with this step to see what I add to a git repository for this but this really is an easy step.</p>
+<p>Take note of the external IP address that is spit out after running that command. We will need that in the next step.</p>
 
-<h2 id="step-2-kotlin-hello-world-locally-https-github-com-baens-blog-step-by-step-kotlin-commit-46304a14b7d74554775695ed3edc91a1d197e3e7"><a href="https://github.com/baens/blog-step-by-step-kotlin/commit/46304a14b7d74554775695ed3edc91a1d197e3e7">Step 2: Kotlin Hello World locally</a></h2>
+<p>Next we will need to expose that instance with a firewall rule:</p>
 
-<p>Our end goal for this step will be to make it print &ldquo;Hello World&rdquo; from the <code>./gradlew run</code> command.</p>
+<pre><code>gcloud compute firewall-rules create allow-http-traffic --target-tags http-traffic --allow tcp:80
+</code></pre>
 
-<p>Let&rsquo;s first setup our tool chain. This will be just a gradle file with all of the plugins and dependencies that we will need.</p>
+<p>Once that is complete, go ahead and try and hit the external IP address of that image. You should now see a &ldquo;Welcome to nginx!&rdquo; screen.</p>
 
-<p><strong>build.gradle</strong>:</p>
+<p>Before the next part, if you want to delete that image, go ahead and run <code>gcloud compute instances delete nginx-vm</code>.</p>
+
+<p>Well that doesn&rsquo;t look hard does it? We can take images from docker hub and push them up, and bam, we have a running docker container running in the cloud. However, what happens if we want our own code, or code not hosted on the Docker hub? Let&rsquo;s create a private docker image and show you how to authenticate and pull that image down.</p>
+
+<h1 id="setting-up-a-custom-docker-image">Setting up a custom Docker image</h1>
+
+<p>Let&rsquo;s establish a private docker image that we would like to be running on the COS image. We will take the base nginx image, and modify it with a custom index page to demonstrate we can build and deploy the custom image.</p>
+
+<p>Here are the two files you will need, first the new <code>index.html</code> file:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html"><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+&lt;<span style="color:#f92672">html</span>&gt;
+&lt;<span style="color:#f92672">head</span>&gt;
+&lt;<span style="color:#f92672">title</span>&gt;Welcome to nginx!&lt;/<span style="color:#f92672">title</span>&gt;
+&lt;<span style="color:#f92672">style</span>&gt;
+    <span style="color:#f92672">body</span> {
+        <span style="color:#66d9ef">width</span>: <span style="color:#ae81ff">35</span><span style="color:#66d9ef">em</span>;
+        <span style="color:#66d9ef">margin</span>: <span style="color:#ae81ff">0</span> <span style="color:#66d9ef">auto</span>;
+        <span style="color:#66d9ef">font-family</span>: Tahoma, Verdana, Arial, <span style="color:#66d9ef">sans-serif</span>;
+    }
+&lt;/<span style="color:#f92672">style</span>&gt;
+&lt;/<span style="color:#f92672">head</span>&gt;
+&lt;<span style="color:#f92672">body</span>&gt;
+&lt;<span style="color:#f92672">h1</span>&gt;Welcome to My Custom nginx!&lt;/<span style="color:#f92672">h1</span>&gt;
+&lt;/<span style="color:#f92672">body</span>&gt;
+&lt;/<span style="color:#f92672">html</span>&gt;</code></pre></div>
+<p>And here is what the <code>Dockerfile</code> would look like:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> nginx:1.15.8</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>COPY index.html /usr/share/nginx/html</code></pre></div>
+<p>If you would like to test that locally, run <code>docker build -t test . &amp;&amp; docker run --rm -p 8080:80 test</code> and point the browser to <a href="http://localhost:8080">http://localhost:8080</a>, you should see the &ldquo;Welcome to My Custom nginx!&rdquo; banner.</p>
+
+<p>Let&rsquo;s now take our image and push it up into the private repository. This is a little beyond the scope of this blog post, but go ahead and pick somewhere you can upload a docker image that can be accessed over the public internet. I&rsquo;ve used gitlab but any registry really would work. Just make sure its accessible to the public. If you need help with that part, reach out to me and I&rsquo;ll attempt to assist.</p>
+
+<h1 id="authenticating-with-the-registry">Authenticating with the registry</h1>
+
+<p>Now that we have our image up in a registry, we need some way to authenticate with that registry on our VM. If you were doing this locally, I bet you ran a <code>docker login</code> command at some point to get authenticated with that registry. Well, thats exactly what we are going to do with this VM as well.</p>
+
+<p>So how do we going about running that command? Well, COS has a toolkit installed called <a href="https://cloudinit.readthedocs.io/en/latest/">cloud-init</a>. <code>Cloud-init</code> is a set of tools to manage cloud images. These help provide ways to create startup scripts to get your cloud image running in exactly the way you want. They are used on most cloud providers and most distros have hooks or tools that can be used. For this particular case we will be interested in providing user scripts that can run at startup. For this, we will be providing a <code>user-data</code> variable that provides a <code>cloud-config</code> block. This block will create a user, a service definition, as well as run a startup script to start that service. Sounds easy right? Well, let&rsquo;s go!</p>
+
+<p>Let&rsquo;s take a look at what this <code>cloud-config</code> configuration file may look like here:</p>
 
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 4
@@ -151,156 +168,91 @@ JVM:          1.8.0_144 (Oracle Corporation 25.144-b01)
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">29
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">30
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">31
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">32
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">33
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">34
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">35
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">36
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">37
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">38
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">39
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">40
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">41
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">42
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">43
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">44
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">45
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle"><span style="color:#75715e">/**
-</span><span style="color:#75715e"> * This section is for all of the plugins we need to make this work. 
-</span><span style="color:#75715e"> * Kotlin, the fat jar builder, and flag it 
-</span><span style="color:#75715e"> * as an application so `./gradlw run` will work
-</span><span style="color:#75715e"> */</span>
-plugins <span style="color:#f92672">{</span>
-    id <span style="color:#e6db74">&#39;org.jetbrains.kotlin.jvm&#39;</span> version <span style="color:#e6db74">&#39;1.2.21&#39;</span>
-    id <span style="color:#e6db74">&#39;com.github.johnrengelman.shadow&#39;</span> version <span style="color:#e6db74">&#39;2.0.2&#39;</span>
-<span style="color:#f92672">}</span>
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#75715e">#cloud-config</span>
 
-apply plugin: <span style="color:#e6db74">&#39;application&#39;</span>
+users:
+- name: cloudservice
+  uid: <span style="color:#ae81ff">2000</span>
 
+write_files:
+- path: /etc/systemd/system/myservice.service
+  permissions: <span style="color:#ae81ff">0644</span>
+  owner: root
+  content: <span style="color:#e6db74">|
+</span><span style="color:#e6db74">    [Unit]</span>
+    Description=My Service
+    Requires=docker.service network-online.target
+    After=docker.service network-online.target
 
-<span style="color:#75715e">/**
-</span><span style="color:#75715e"> * Standard dependency section for gradle. 
-</span><span style="color:#75715e"> * Define the kotlin standard libray for
-</span><span style="color:#75715e"> * Java 8.
-</span><span style="color:#75715e"> */</span>
-repositories <span style="color:#f92672">{</span>
-    mavenCentral<span style="color:#f92672">()</span>
-<span style="color:#f92672">}</span>
+    [Service]
+    Environment=<span style="color:#e6db74">&#34;HOME=/home/cloudservice&#34;</span>
+    ExecStartPre=/usr/bin/docker login %REGISTRY% -u %USERNAME% -p %PASSWORD%
+    ExecStart=/usr/bin/docker run --network=host --rm --name=myservice %DOCKER_IMAGE%
+    ExecStop=/usr/bin/docker stop myservice
+    Restart=on-failure
+    RestartSec=<span style="color:#ae81ff">10</span>
 
-dependencies <span style="color:#f92672">{</span>
-    compile <span style="color:#e6db74">&#39;org.jetbrains.kotlin:kotlin-stdlib-jre8&#39;</span>
-<span style="color:#f92672">}</span>
+    [Install]
+    WantedBy=multi-user.target
 
-<span style="color:#75715e">/**
-</span><span style="color:#75715e"> * Personal preference. I hate having src/main/kotlin
-</span><span style="color:#75715e"> * be the root, so I change it that &#39;src&#39;
-</span><span style="color:#75715e"> * is the root of my source directory.
-</span><span style="color:#75715e"> */</span> 
-sourceSets <span style="color:#f92672">{</span>
-    main<span style="color:#f92672">.</span><span style="color:#a6e22e">kotlin</span><span style="color:#f92672">.</span><span style="color:#a6e22e">srcDirs</span> <span style="color:#f92672">+=</span> <span style="color:#e6db74">&#39;src&#39;</span>
-<span style="color:#f92672">}</span>
-
-<span style="color:#75715e">// Define the main startup class and jar name
-</span><span style="color:#75715e"></span>mainClassName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;MainKt&#39;</span>
-archivesBaseName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;step-by-step-kotlin&#39;</span>
-
-<span style="color:#75715e">// tell the jar which class to startup in.
-</span><span style="color:#75715e"></span>jar <span style="color:#f92672">{</span>
-    manifest <span style="color:#f92672">{</span>
-        attributes <span style="color:#e6db74">&#39;Main-Class&#39;</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;MainKt&#39;</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>   </code></pre></td></tr></table>
+runcmd:
+- iptables -A INPUT -p tcp -j ACCEPT
+- systemctl daemon-reload
+- systemctl enable --now --no-block myservice.service</code></pre></td></tr></table>
 </div>
 </div>
 
-<p>Let&rsquo;s go through some of those lines again and draw out whats going on.</p>
+<p>This configuration file is used as a template that will generate us a configuration file for our <code>cloud-config</code> process. Let&rsquo;s point out some of the more important lines then I&rsquo;ll explain what the variables are:</p>
 
-<p><strong>Lines 6 - 11</strong>: These are just plugin lines. Gradle has a couple of ways to define plugins. One is called the <code>plugin DSL</code> the other is called <code>script plugin</code>. I&rsquo;m not going to try and explain the difference here, please go read <a href="https://docs.gradle.org/current/userguide/plugins.html">the plugins doc</a> to get a better idea. One plugin to note is the <code>shadow</code> plugin. This one is to create Fat Jars, or in other words, jars that contain every dependency that is needed to run. Instead of having to make sure things are on your classpath or some other nonsense, I can just give you this jar file, and it will run. This will make it running inside of docker easier.</p>
+<p><strong>Line 1</strong>: This flags this file as a cloud config file. If you don&rsquo;t have this, the system won&rsquo;t pick it up and process it. It is VERY important to have it exactly this way.</p>
 
-<p><strong>Line 24</strong>: Here we are defining the kotlin standard for Java 8. This is newer in Kotlin 1.1 and you can read about it <a href="https://kotlinlang.org/docs/reference/using-gradle.html#configuring-dependencies">here</a>. There are a few ways to do this, but this was specific to what was needed for Java 8. I&rsquo;ve run into issues using the backwards compatible one and try and use the Java 8 one so that the newer features actually work</p>
+<p><strong>Line 3 - 5</strong>: Sets up a user dedicated to running this service. This creates a security sandbox because this user will not have any permissions assigned to it except to run this container.</p>
 
-<p><strong>Lines 32 - 34</strong>: This is entirely optional, but this is how I prefer to setup my projects. I hate the default of <code>src/main/java</code> or something silly like that. That is 3 folders I have to navigate just to get to my source. PLUS then I have to navigate down through the folders of my namespace. Rarely do projects have to have all of these different types of languages so you can eliminate the <code>java</code> folder at the very least. And 2nd, having to maintain a <code>test</code> source folder and a <code>main</code> source folder is the PITA. I much prefer to have my tests and source side by side. It just makes it easier to find my tests that are associated with each file.  Again, this is all personal choice but I&rsquo;ve been doing this long enough to feel strongly about this one now. Give me one folder with all my source and don&rsquo;t make me nest things that I don&rsquo;t want too!</p>
+<p><strong>Line 7 - 26</strong>: This is the file contents of <code>/etc/systemd/system/myservice.service</code>. As the path suggests, this is a <code>systemd</code> service file that will run our docker container. This section has information about the file permissions as well as the actual content of the file embedded in this configuration.</p>
 
-<p><strong>Line 37</strong>: This is a simple line but I did want to call out something. <code>MainKt</code> is special because it will be the name of the file with <code>kt</code> at the end of it. I will explain a little bit more when we get to that source. But this is a convention Kotlin has when there is just a method inside of the file. It will automatically enclose that method in a class for the JVM to use. So be careful about that <code>kt</code>.</p>
+<p><strong>Line 12 - 15</strong>: Sets the description of the service as well as any requirements the service needs to run. In this case, we want the network to be online and docker to be running before this service starts.</p>
 
-<p>Now for the actual, very simple, hello world code.</p>
+<p><strong>Line 17 - 23</strong>: Sets how the service starts and stops. This is some of the more important bits. First, we are setting up the home directory to be the user that we had created earlier. This kinds of sandboxes and isolating where this is running. Next the <code>ExecStartPre</code> is where some of this magic starts to come into place. This is where the <code>docker login</code> command is executed. All of the parameters are currently variables and can be replaced but this is where the magic happens. Next the <code>ExecStart</code> actually runs the <code>docker run</code> command. One important thing to note is the <code>--network=host</code> flag. We want the docker container to be using the host&rsquo;s network interfaces instead of creating the normal isolated network stack. This way the container can act just like the host on the network and have all ports exposed without any further magic.</p>
 
-<p><strong>src/Main.kt:</strong></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">main</span>(args: Array&lt;String&gt;) {
-    println(<span style="color:#e6db74">&#34;Hello World&#34;</span>)
-}</code></pre></div>
-<p>I want to point out and congratulate the Kotlin team on this. If you have ever done any Java programming, you know that you always need a class per file. Kotlin has a few conventions to make certain things easier and I think this is brilliant. I love things like this that just remove the pomp and circumstance. This is especially helpful when trying to get new developers into the language. Every time I&rsquo;ve had to teach someone Java, the <code>public class Whatever</code> was foreign and we had to go down a rabbit hole even before we had anything running.</p>
+<p><strong>Line 22 - 23</strong>: This sets up the service to restart on failure and wait 10 seconds between each retry</p>
 
-<p>You should now be able to run <code>./gradlew run</code> and see this:</p>
+<p><strong>Line 28 - 31</strong>: This section runs once the configuration has been read and all other parts are completed. This acts like a startup script. First we setup the internal firewall to accept TCP connections using <code>iptables</code>. Then we reload the <code>systemd</code> daemon to read in our configuration files, then we enable and queue up startup of our service. This is really important to note,the <code>--now --no-block</code> commands are important here because we want the service to start up now, but we also want it queued in the <code>systemd</code> process so that it waits for the Docker service and network connects to be online. Otherwise our container may not start right because Docker isn&rsquo;t ready or we can&rsquo;t reach out to the internet to get our container.</p>
 
-<pre><code>&gt;./gradlew run
+<p>Now, what are all these variables for:</p>
 
-&gt; Task :run
-Hello World
+<p><strong>%REGISTRY%</strong>: This defines the root domain of where the registry is. For example, in testing this, I used gitlab so the registry would have been <code>registry.gitlab.com</code>.</p>
 
+<p><strong>%USERNAME%</strong>: This is the username to be logged in as. Keeping with the gitlab theme, I used a deploy token and the username was given to me by gitlab.</p>
 
-BUILD SUCCESSFUL in 5s
-2 actionable tasks: 2 executed
+<p><strong>%PASSWORDD%</strong>: This is the password or token that can be used to log in.</p>
+
+<p><strong>%DOCKER_IMAGE%</strong>: This is the docker image path. I.e. <code>registry.gitlab.com/myimage/test:1</code>.</p>
+
+<p>Now, how do I run this? Well, replace all of the variables with the right values and then run this command:</p>
+
+<pre><code>gcloud compute instances create test-nginx --image cos-stable-72-11316-136-0 --image-project cos-cloud --tags http-traffic --metadata-from-file user-data=cloud-init-config.yml
 </code></pre>
 
-<h2 id="step-3-kotlin-hello-world-inside-docker-https-github-com-baens-blog-step-by-step-kotlin-commit-8c781f7d5180ac25542fbf707e2d1746debcebc1"><a href="https://github.com/baens/blog-step-by-step-kotlin/commit/8c781f7d5180ac25542fbf707e2d1746debcebc1">Step 3: Kotlin hello world inside docker</a></h2>
+<p>If you take that IP address that is spit out by that command, you should see the &ldquo;Welcome to My Custom nginx!&rdquo; banner. If not, maybe read through the troubleshooting section. If everything worked, congratulations!</p>
 
-<p><strong>Update as of 2018-02-15</strong>: Thammachart Chinvarapon was gracious enough to point out that I was using the wrong Java docker container. I corrected this and moved it to the openjdk container. Thanks Thammachart!</p>
+<h1 id="notes-on-troubleshooting">Notes on troubleshooting</h1>
 
-<p>The next step will be to run this inside of a docker container. While this would be fairly straight forward, I want to demonstrate how to separate your build docker image from your running docker image. While this adds a little bit of complexity, this will actually be more like how you really use these kind of things.</p>
+<p>Alright, the site didn&rsquo;t come up. Now what? Well, let&rsquo;s first SSH into the box so we can start investigating what happened. To do that, let&rsquo;s make sure we have the firewall open by running this command: <code>gcloud compute firewall-rules create allow-ssh-traffic --allow tcp:22</code>. This should open up the firewall to allow you to SSH into the box by executing the following command <code>gcloud compute ssh &lt;box name, i.e. test-nginx&gt;</code>.</p>
 
-<p>Since we have everything working, we just need to get a Dockerfile created and running.</p>
+<p>Now that you are on the box, what exactly are you looking for? Well, for our docker example we want to make sure we have the docker container up and running so we would issue a <code>docker container ls</code> command to verify it is up and running. If it is up and running, then you may have a firewall issue. Visit the <a href="console.cloud.google.com">console</a> and inspect the network interface and see if the ingress is setup correctly. What we would like to see is that port 80 is open and working right. If it is, maybe the <code>iptables</code> didn&rsquo;t run as expected so verify on the VM instance itself you can do something like <code>curl localhost</code>. If that works, verify <code>iptables</code> is correctly setup.</p>
 
-<p><strong>Dockerfile</strong>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker" data-lang="docker"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">14
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker" data-lang="docker">ARG VERSION<span style="color:#f92672">=</span>8u151<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> openjdk:${VERSION}-jdk as BUILD</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>COPY . /src<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> /src</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> ./gradlew --no-daemon shadowJar<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> openjdk:${VERSION}-jre</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>COPY --from<span style="color:#f92672">=</span>BUILD /src/build/libs/step-by-step-kotlin-all.jar /bin/runner/run.jar<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> /bin/runner</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">CMD</span><span style="color:#e6db74"> [&#34;java&#34;,&#34;-jar&#34;,&#34;run.jar&#34;]</span></code></pre></td></tr></table>
-</div>
-</div></p>
+<p>But what if the container isn&rsquo;t even running? Where do I go from there? Well, we need to investigate the logs and start sifting through what may have happened. For this the <code>sudo journalctl</code> command is what you start poking around in. This gives you all of the logs of the box as it starts. Another command for our example is the <code>sudo systemctl status myservice</code> this shows you the raw status of the service, if its up or down, and what may be happening right now with the service.</p>
 
-<p><strong>Line 3 - 9</strong>: This is the &ldquo;builder&rdquo; section.</p>
+<p>Another thing to check that I ran into a lot is first very that the cloud init script is even running correctly. A great way to check for that is to verify that the files we were expecting are even there. In this example, we would expect to see a file at <code>/etc/systemd/system/myservice.service</code>. If that isn&rsquo;t there, usually the problem is that the very first line doesn&rsquo;t read <code>#cloud-config</code> EXACTLY. Double check your config and consult the logs for <code>user-data</code> parsing and retrieving. There is usually a log message that the file isn&rsquo;t understood from the variable and is ignoring the data.</p>
 
-<p><strong>Line 9 - 14</strong>: This it the section that will be actually running.</p>
+<h1 id="conclusion">Conclusion</h1>
 
-<p>This is an awesome way to wrap up in one docker file how to build and create the image inside of itself, as well as run it. What I try and do is make it so you can create this docker image from nearly anywhere. This builder image includes all of the tools needed to build things out. And since we have this gradle wrapper, the toolchain is also there.</p>
+<p>Hopefully I&rsquo;ve given you a taste of how to setup a single Docker container instance using the Container-Optimized OS on the Google Cloud. I&rsquo;ve found this a useful feature when I don&rsquo;t really need all the horse power of a kubernetes instance. This lighter weight infrastructure for a few containers provides to be useful and cost effective. But also be warned, these instances are obliviously not replicated in anyway, so if one goes down, it is all down. Be careful in the cloud because every stack should be built on the assumption that cloud resources could come and go at will.</p>
 
-<p>The 2nd part is what is actually running. The <code>COPY --from=BUILD</code> is the magic that we can pull from the last image (note: <code>BUILD</code> is from line 3 <code>as BUILD</code>).</p>
+<p>All of this code and examples are <a href="https://github.com/baens/code-examples-blog.baens.net/tree/cos-gcp-setup">hosted on my github account</a>.</p>
 
-<p>I&rsquo;m not going to go too much of what exactly docker is doing but do want to point out a couple of quick things. We basically do a copy, setup what is the working directory (think <code>cd</code> if you were using command line), then do the work or run.</p>
-
-<p>Run this and the image will build and run:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">docker build -t kotlin . <span style="color:#f92672">&amp;&amp;</span> docker run kotlin</code></pre></div>
   </section>
   <footer>
     
@@ -308,12 +260,11 @@ BUILD SUCCESSFUL in 5s
       <div class="c-pagination__ctrl">
         <div class="c-pagination__newer">
           
-          <a href="https://blog.baens.net/posts/step-by-step-kotlin-jaxrs-hello-world/">Newer</a>
           
         </div>
         <div class="c-pagination__older">
           
-          <a href="https://blog.baens.net/posts/step-by-step-series/">Older</a>
+          <a href="https://blog.baens.net/posts/making-inspec-work-with-gcp-and-packer/">Older</a>
           
         </div>
       </div>

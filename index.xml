@@ -6,10 +6,20 @@
     <description>Recent content on Erik Lindblom&#39;s Ramblings</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 11 Jan 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 11 Mar 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.baens.net/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Setting up a Docker container on a Container-Optimized OS running on the Google Cloud</title>
+      <link>https://blog.baens.net/posts/setting-up-cos-on-gcp/</link>
+      <pubDate>Mon, 11 Mar 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.baens.net/posts/setting-up-cos-on-gcp/</guid>
+      <description>Wow, that title looks like a mouth full doesn&amp;rsquo;t it? So why do this? Isn&amp;rsquo;t there Kubernetes for running Docker containers? Well, sometimes I only need just one container running and I really don&amp;rsquo;t want to add the overhead of having to maintain another Kubernetes clusters. Lame excuse, but this works well for a small installation where I just don&amp;rsquo;t need the power of a full Kubernetes cluster.
+What exactly is a Container-Optimized OS (COS)?</description>
+    </item>
     
     <item>
       <title>Making Inspec with SSH work with Packer on the Google Cloud Platform</title>
