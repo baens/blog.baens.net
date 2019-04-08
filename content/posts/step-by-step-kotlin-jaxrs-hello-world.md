@@ -6,6 +6,8 @@ series: ["step-by-step"]
 
 Hello Again and welcome to another blog post in my ongoing series on step-by-step tutorials. This one will actually build atop the last [Hello Kotlin](https://blog.baens.net/posts/step-by-step-kotlin/) one and make a [JAX-RS](https://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services) web service. This particular implementation of JAX-RS will be [Jersey](https://jersey.github.io/). Jersey is actually the reference implementation from Oracle, but there are a few out there that I've honestly haven't given enough time.
 
+The code repository of everything is located on [github](https://github.com/baens/blog-step-by-step-jaxrs) for you to follow along.
+
 ## [Step 0: Prerequisites](https://github.com/baens/blog-step-by-step-jaxrs/commit/830399adbaf4da38e03146b93cf4cfa58a03929e)
 For this one, I am going to start off with my Kotlin Hello World repository. This already has a Gradle wrapper setup, along with some basic things. I've changed `mainClassName`  to `Server.kt` and `archivesBaseName` to match this projects name.
 
