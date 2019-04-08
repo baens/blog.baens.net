@@ -96,7 +96,7 @@ Well I&amp;rsquo;ve finally found a decent one.</description>
       
       <guid>https://blog.baens.net/posts/step-by-step-kotlin-jaxrs-hello-world/</guid>
       <description>Hello Again and welcome to another blog post in my ongoing series on step-by-step tutorials. This one will actually build atop the last Hello Kotlin one and make a JAX-RS web service. This particular implementation of JAX-RS will be Jersey. Jersey is actually the reference implementation from Oracle, but there are a few out there that I&amp;rsquo;ve honestly haven&amp;rsquo;t given enough time.
-Step 0: Prerequisites For this one, I am going to start off with my Kotlin Hello World repository.</description>
+The code repository of everything is located on github for you to follow along.</description>
     </item>
     
     <item>
