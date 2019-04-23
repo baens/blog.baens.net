@@ -9,11 +9,13 @@ Let's see what the terraform file would look like:
 
 {{< highlight yml "linenos=table">}}
 provider "google" {
-    version = "2.3.0"
+    version = "2.5.1"
+    project = "${var.project}"
+    zone = "${var.zone}"
 }
 
 resource "google_compute_firewall" "http-traffic" {
-    name = "allow-http-traffic"
+    name = "allow-http-traffic-2"
     network = "default"
 
     allow {
@@ -28,10 +30,10 @@ data "template_file" "cloud-init" {
     template = "${file("cloud-init.yml.tmpl")}"
 
     vars = {
-        registry = "${ }"
-        username = "${ }"
-        password = "${ }"
-        image = "${ }"
+        registry = "${var.registry}"
+        username = "${var.username}"
+        password = "${var.password}"
+        image = "${var.image}"
     }
 }
 
@@ -58,4 +60,12 @@ resource "google_compute_instance" "cos-instance" {
         "user-data" = "${data.template_file.cloud-init.rendered}"
     }
 }
+
+output "address" {
+    value = "${google_compute_instance.cos-instance.network_interface.0.access_config.0.nat_ip}"
+}
 {{< / highlight >}}
+
+There isn't too much magic in there and a fairly straight forward GCP terraform configuration. As you may notice, I concentrated on just the compute instance and the firewall rules. This doesn't actually create the google project, and actually assumes you already have one up and running.
+
+The magic happens in blocks at line 19 and line 50. Line 19 slurps up the template file and does string replacements with the `vars` defined in the correspounding block. That rendered template file is then attached to the correct metadata `user-data` variable.
