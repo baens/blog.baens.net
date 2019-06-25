@@ -3,7 +3,7 @@ title: "Setting up a Docker container on a Container-Optimized OS running on the
 date: 2019-04-15
 ---
 
-This blog post will expand on a previous blog post that sets up a Container-Optimized OS in Google Cloud. But instead of doing all the commands manually, here is what it would take to do this with Terraform. I won't go into exactly what Terraform is or the benefits here. But I would highly recommend checking it out and using it to manage your cloud resources. This blog will focus on the Terraform file that would replicate the previous blog post functionality.
+This blog post will expand on a previous blog post that sets up a [Container-Optimized OS in Google Cloud](https://blog.baens.net/posts/setting-up-cos-on-gcp/). But instead of doing all the commands manually, here is what it would take to do this with [Terraform](https://www.terraform.io). I won't go into exactly what Terraform is or the benefits here. But I would highly recommend checking it out and using it to manage your cloud resources. This blog will focus on the Terraform file that would replicate the previous blog post functionality.
 
 Let's see what the terraform file would look like:
 
@@ -45,7 +45,7 @@ resource "google_compute_instance" "cos-instance" {
 
     boot_disk {
         initialize_params {
-            image = "cos-cloud/cos-stable-72-11316-136-0"
+            image = "cos-cloud/cos-73-11647-217-0"
         }
     }
 
@@ -69,3 +69,7 @@ output "address" {
 There isn't too much magic in there and a fairly straight forward GCP terraform configuration. As you may notice, I concentrated on just the compute instance and the firewall rules. This doesn't actually create the google project, and actually assumes you already have one up and running.
 
 The magic happens in blocks at line 19 and line 50. Line 19 slurps up the template file and does string replacements with the `vars` defined in the correspounding block. That rendered template file is then attached to the correct metadata `user-data` variable.
+
+Now that we have all of this, how do we run this? Grab the code in this repository to help you run it. After that, make sure to use Terraform 0.11 for this post (sorry, haven't upgraded things to 0.12 yet). Once that is done, go ahead and and run `terraform init` and make sure things instll ok. 
+
+Now that is done, we could go ahead and try and use `terraform plan`. But that is going to get annoying fast to keep getting asked all the different variables. Let's go ahead and take the `terraform.tfvars.tmpl`, copy that over to `terraform.tfvars` and fill out each variable. Then go ahead and run `terraform plan` and check that things are going to work out. If that plan looks out, go ahead and run `terraform apply`. With that, things should be created and installed.
