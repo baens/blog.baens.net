@@ -3,6 +3,23 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://blog.baens.net/</loc>
+    <lastmod>2019-07-01T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://blog.baens.net/posts/</loc>
+    <lastmod>2019-07-01T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://blog.baens.net/posts/setting-up-cos-on-gcp-with-terraform/</loc>
+    <lastmod>2019-07-01T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://blog.baens.net/posts/setting-up-cos-on-gcp/</loc>
     <lastmod>2019-03-11T00:00:00+00:00</lastmod>
   </url>
@@ -43,8 +60,20 @@
   </url>
   
   <url>
+    <loc>https://blog.baens.net/series/</loc>
+    <lastmod>2018-02-17T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://blog.baens.net/posts/step-by-step-kotlin-jaxrs-hello-world/</loc>
     <lastmod>2018-02-17T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.baens.net/series/step-by-step/</loc>
+    <lastmod>2018-02-17T00:00:00+00:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
@@ -53,18 +82,8 @@
   </url>
   
   <url>
-    <loc>https://blog.baens.net/posts/step-by-step-series/</loc>
-    <lastmod>2018-02-11T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.baens.net/posts/http-with-telnet/</loc>
-    <lastmod>2018-01-07T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.baens.net/</loc>
-    <lastmod>2019-03-11T00:00:00+00:00</lastmod>
+    <loc>https://blog.baens.net/tags/</loc>
+    <lastmod>2018-02-12T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -75,26 +94,13 @@
   </url>
   
   <url>
-    <loc>https://blog.baens.net/posts/</loc>
-    <lastmod>2019-03-11T00:00:00+00:00</lastmod>
-    <priority>0</priority>
+    <loc>https://blog.baens.net/posts/step-by-step-series/</loc>
+    <lastmod>2018-02-11T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://blog.baens.net/series/</loc>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://blog.baens.net/series/step-by-step/</loc>
-    <lastmod>2018-02-17T00:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://blog.baens.net/tags/</loc>
-    <lastmod>2018-02-12T00:00:00+00:00</lastmod>
-    <priority>0</priority>
+    <loc>https://blog.baens.net/posts/http-with-telnet/</loc>
+    <lastmod>2018-01-07T00:00:00+00:00</lastmod>
   </url>
   
 </urlset>

@@ -4,16 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
   
-  <title>Notes from experimenting with GraphQL and Kotlin</title>
-  <meta property="og:title" content="Notes from experimenting with GraphQL and Kotlin" />
-  <meta name="twitter:title" content="Notes from experimenting with GraphQL and Kotlin" />
+  <title>Setting up a Docker container on a Container-Optimized OS running on the Google Cloud with Terraform</title>
+  <meta property="og:title" content="Setting up a Docker container on a Container-Optimized OS running on the Google Cloud with Terraform" />
+  <meta name="twitter:title" content="Setting up a Docker container on a Container-Optimized OS running on the Google Cloud with Terraform" />
   
 
   
 
   <meta name="author" content="Erik Lindblom"/>
   <meta property="og:site_name" content="Erik Lindblom&#39;s Ramblings" />
-  <meta property="og:url" content="https://blog.baens.net/posts/experiment-notes-graphql-postgres/" />
+  <meta property="og:url" content="https://blog.baens.net/posts/setting-up-cos-on-gcp-with-terraform/" />
 
   
   <meta name="twitter:card" content="summary" />
@@ -49,12 +49,12 @@
 
 <article class="p-article">
   <header>
-    <h1>Notes from experimenting with GraphQL and Kotlin</h1>
+    <h1>Setting up a Docker container on a Container-Optimized OS running on the Google Cloud with Terraform</h1>
     <div>
       <div class="c-time">
         Posted on
-        <time datetime="2018-03-22T00:00:00Z">
-          Mar 22, 2018
+        <time datetime="2019-07-01T00:00:00Z">
+          Jul 1, 2019
         </time>
       </div>
       
@@ -62,78 +62,162 @@
   </header>
   
   <section id="js-article" class="p-article__body">
-    
+    <p>This blog post will expand on a previous blog post that sets up a <a href="https://blog.baens.net/posts/setting-up-cos-on-gcp/">Container-Optimized OS in Google Cloud</a>. But instead of doing all the commands manually, here is what it would take to do this with <a href="https://www.terraform.io">Terraform</a>. I won&rsquo;t go into exactly what Terraform is or the benefits here. But I would highly recommend checking it out and using it to manage your cloud resources. This blog will focus on the Terraform file that would replicate the previous blog post functionality.</p>
 
-<h1 id="what-is-this-graphql-thing">What is this GraphQL thing</h1>
+<p>Let&rsquo;s see what the terraform file would look like:</p>
 
-<p>I have finally got time to try out GraphQL. I&rsquo;ve been reading about it more and more and wanted to get a sense of how to build a data API with it. Now, if you don&rsquo;t know what GraphQL is, here is my take on it. It is a way to create data APIs that allow clients to tell you what data they actually need. Instead of you trying to design up front all of your use cases and force clients to use that. You let them tell you what data they need, when they need it. This makes it so you as the data designer just expose the data that you have and expose ways to filter the data and the relationships that are inside the data. You don&rsquo;t care how the client uses it, you just expose the data as you have it. I believe this is how a data API should be designed. This decouples the why from the how which usually empowers users of the API and makes it more useful longer term.</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">68
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">69
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml">provider <span style="color:#e6db74">&#34;google&#34;</span> {
+  version = <span style="color:#e6db74">&#34;2.9.1&#34;</span>
+  project = <span style="color:#e6db74">&#34;${var.project}&#34;</span>
+  zone    = <span style="color:#e6db74">&#34;${var.zone}&#34;</span>
+}
 
-<h1 id="getting-started-with-graphql-on-kotlin">Getting started with GraphQL on Kotlin</h1>
+resource <span style="color:#e6db74">&#34;google_compute_firewall&#34;</span> <span style="color:#e6db74">&#34;http-traffic&#34;</span> {
+  name    = <span style="color:#e6db74">&#34;allow-http&#34;</span>
+  network = <span style="color:#e6db74">&#34;default&#34;</span>
 
-<p>My first approach was to create a Jersey web application that exposed the correct end points for GraphQL. Apparently, this is the wrong approach. The library I&rsquo;ve found (<a href="https://github.com/graphql-java/graphql-java">graphql-java</a>) doesn&rsquo;t work that way. It works by adding a servlet directly to the server. Sorry if that is totally greek. Let&rsquo;s just say I was taking the approach of trying to build out a REST end point that just happens to have some GraphQL functionality. This was the wrong approach and what I needed to do was actually just add an HTTP route to a bit of logic and the libraries handle everything for me.</p>
+  allow {
+    protocol = <span style="color:#e6db74">&#34;tcp&#34;</span>
+    ports    = [<span style="color:#e6db74">&#34;80&#34;</span>]
+  }
 
-<p>The <a href="https://www.howtographql.com/graphql-java/0-introduction/">&ldquo;How to GraphQL with Java&rdquo;</a> tutorials were extremely helpful. This showed me how to wire up the library correctly and it gave me enough snipplets to figure out what needed to go where. So let&rsquo;s get started.</p>
+  target_tags = [<span style="color:#e6db74">&#34;http-traffic&#34;</span>]
+}
 
-<h1 id="server-configuration">Server Configuration</h1>
+resource <span style="color:#e6db74">&#34;google_compute_firewall&#34;</span> <span style="color:#e6db74">&#34;http-ssh&#34;</span> {
+  name    = <span style="color:#e6db74">&#34;allow-ssh&#34;</span>
+  network = <span style="color:#e6db74">&#34;default&#34;</span>
 
-<p>So for my approach I wanted to try and use the <a href="https://javaee.github.io/grizzly/">embeddded Grizzly Java server</a> because that is what I&rsquo;ve been using lately as a server inside of my JVM projects. This made things a little bit more complicated because it was intended to be used as a JAX-RS server. Which meant that all the information currently out there has information on how to set that up. But for this particular case I actually needed a servlet. This was definitely going off the well beaten path. A few posts later and some tinkering it does work.</p>
+  allow {
+    protocol = <span style="color:#e6db74">&#34;tcp&#34;</span>
+    ports    = [<span style="color:#e6db74">&#34;22&#34;</span>]
+  }
 
-<p>The first part I figured out was getting the GraphQL schema parsed. This file, which is embedded inside of the application, needs to be parsed out to figure out what data you have. Along with that, you then provide a <a href="https://github.com/graphql-java/graphql-java-tools#root-resolvers">root resolver</a> that will contain the logic of how a request is intercepted and executed. This looks like this:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#75715e">// Setting up graphql schema, servlet, and bindings to server
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> graphqlSchema = SchemaParser.newParser()
-        .file(<span style="color:#e6db74">&#34;schema.graphqls&#34;</span>)
-        .resolvers(Query()) <span style="color:#75715e">// we can add any number of resolvers here
-</span><span style="color:#75715e"></span>        .build()
-        .makeExecutableSchema()</code></pre></div>
-<p>OK, that is fairly straight forward. Now we are going to take that schema and create a servlet that we can add to our server. This looks like this:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">val</span> graphqlServlet = SimpleGraphQLServlet
-            .builder(graphqlSchema)
-            .build()</code></pre></div>
-<p>That isn&rsquo;t rocket science either. However, the next part is what took me the longest. For Grizzly, there is a not well documented class that helps you setup servlets. The <a href="http://atetric.com/atetric/javadoc/org.glassfish.grizzly/grizzly-http-servlet-server/2.4.3/org/glassfish/grizzly/servlet/WebappContext.html">WebAppContext</a> was the magical find and it really isn&rsquo;t well documented out there unless you look through Java source code (&hellip;yuck!&hellip;). This class sets up the servlet with all of the things it needs to run (context and bindings if you know servlets). I was hoping for something that just required a few annotations here and there but Grizzly doesn&rsquo;t support that (or at least I couldn&rsquo;t get it working). If you follow along the GraphQL how to, they setup a servlet using that annotation magic. But here, we have to do a little bit more work ourselves. This is how it ended up looking:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">val</span> webappContext = WebappContext(<span style="color:#e6db74">&#34;Graphql Context&#34;</span>, <span style="color:#e6db74">&#34;/&#34;</span>)
+  target_tags = [<span style="color:#e6db74">&#34;ssh-traffic&#34;</span>]
+}
 
-webappContext.addServlet(<span style="color:#e6db74">&#34;GraphQL Endpoint&#34;</span>, graphqlServlet)
-             .addMapping(<span style="color:#e6db74">&#34;/graphql&#34;</span>)
+data <span style="color:#e6db74">&#34;template_file&#34;</span> <span style="color:#e6db74">&#34;cloud-init&#34;</span> {
+  template = <span style="color:#e6db74">&#34;${file(&#34;</span>cloud-init.yml.tmpl<span style="color:#e6db74">&#34;)}&#34;</span>
 
-<span style="color:#66d9ef">val</span> server = HttpServer.createSimpleServer()
+  vars = {
+    registry = <span style="color:#e6db74">&#34;${var.registry}&#34;</span>
+    username = <span style="color:#e6db74">&#34;${var.username}&#34;</span>
+    password = <span style="color:#e6db74">&#34;${var.password}&#34;</span>
+    image    = <span style="color:#e6db74">&#34;${var.image}&#34;</span>
+  }
+}
 
-webappContext.deploy(server)</code></pre></div>
-<p>I&rsquo;ve included the server portion as well because you have to &ldquo;deploy&rdquo; the webapp context to a server. For these few lines it took a surprising amount of work to get it there. But in the end I like it. It is a straight forward setup that anyone could follow along if they need too.</p>
+resource <span style="color:#e6db74">&#34;google_compute_instance&#34;</span> <span style="color:#e6db74">&#34;cos-instnace&#34;</span> {
+  name         = <span style="color:#e6db74">&#34;cos-instance-${substr(md5(file(&#34;</span>cloud-init.yml.tmpl<span style="color:#e6db74">&#34;)),0,10)}&#34;</span>
+  machine_type = <span style="color:#e6db74">&#34;n1-standard-1&#34;</span>
 
-<p>Now the next thing I wanted is to provide an interface that will allow users to play with the API. This is like the <a href="https://swagger.io">swagger</a> interface people are familiar with for REST end points. For GraphQL the interface usually used is <a href="https://github.com/graphql/graphiql">GraphiQL</a>. To setup GraphiQL is relatively easy. You copy the <code>index.html</code> file from their github repository, place it in your code base. Tweak the file to point to a CDN, and bam. Done.  But, to get the Grizzly server to serve up that file took a little bit of coxing. Again, you need to add a servlet that will serve up that static HTML file correctly. This actually took a <a href="https://stackoverflow.com/questions/20924739/grizzly-server-with-static-content-and-rest-resource">StackOverflow question</a> to get me on the right path. From that it looks like I needed the <code>CLStaticHttpHandler</code> class which looks like this:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin">server.serverConfiguration
-          .addHttpHandler(CLStaticHttpHandler(Thread.currentThread().contextClassLoader), <span style="color:#e6db74">&#34;/&#34;</span>)</code></pre></div>
-<p>This really isn&rsquo;t ground breaking but there it is. The hard part is getting the pieces together in the right order. But that&rsquo;s why there are blog posts. To help spread this kind of information.</p>
+  tags = [<span style="color:#e6db74">&#34;http-traffic&#34;</span>, <span style="color:#e6db74">&#34;ssh-traffic&#34;</span>]
 
-<p>And that&rsquo;s it! We now have our server configured and ready to rock and roll.</p>
+  boot_disk {
+    initialize_params {
+      image = <span style="color:#e6db74">&#34;cos-cloud/cos-73-11647-217-0&#34;</span>
+    }
+  }
 
-<h1 id="embedding-the-schema-and-html-files-in-the-jar">Embedding the schema and html files in the JAR</h1>
+  network_interface {
+    network = <span style="color:#e6db74">&#34;default&#34;</span>
 
-<p>So, we have our Java code working fine, now we need to embeded those HTML files and GraphQL schema files inside our jar for the services to use. This is really straight forward but I wanted to point out that I personally don&rsquo;t like the default folder structure of Java projects. So I of course have to make life hard and tweak everything. Here is what I tweaked in gradle to make HTML files be in the folder <code>src/html</code> and graphql schema files be at <code>src/graphql</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle">sourceSets <span style="color:#f92672">{</span>
-    main<span style="color:#f92672">.</span><span style="color:#a6e22e">resources</span><span style="color:#f92672">.</span><span style="color:#a6e22e">srcDirs</span> <span style="color:#f92672">+=</span> <span style="color:#f92672">[</span><span style="color:#e6db74">&#39;src/html&#39;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#39;src/graphql&#39;</span><span style="color:#f92672">]</span>
-<span style="color:#f92672">}</span></code></pre></div>
-<p>This sets the resources directories manually (in gradle, a resource is anything that isn&rsquo;t code) and places them correctly in the jar file.</p>
+    access_config {
+      // this empty block creates a public IP address
+    }
+  }
 
-<h1 id="the-whole-shabang">The whole shabang</h1>
+  metadata {
+    <span style="color:#e6db74">&#34;user-data&#34;</span> = <span style="color:#e6db74">&#34;${data.template_file.cloud-init.rendered}&#34;</span>
+  }
+}
 
-<p>So here is the final repository if you want to see everything working: <a href="https://github.com/baens/blog-experimental-graphql-servlet">https://github.com/baens/blog-experimental-graphql-servlet</a></p>
+output <span style="color:#e6db74">&#34;address&#34;</span> {
+  value = <span style="color:#e6db74">&#34;${google_compute_instance.cos-instnace.network_interface.0.access_config.0.nat_ip}&#34;</span>
+}</code></pre></td></tr></table>
+</div>
+</div>
 
-<p>You can download and fire up the server through <code>./gradlew run</code> or even use the Docker image and use that. In the end all this does is do the same thing the how to GraphQL site does, but the pieces above are where the work was at. The resolver and repository are nothing magical at this point and follow the examples laid out everywhere else.</p>
+<p>There isn&rsquo;t too much magic in there and a fairly straight forward GCP terraform configuration. As you may notice, I concentrated on just the compute instance and the firewall rules. This doesn&rsquo;t actually create the Google Cloud project, and actually assumes you already have one up and running.</p>
 
-<h1 id="note-magic-is-currently-needed-to-make-a-few-things-work">Note: magic is currently needed to make a few things work</h1>
+<p>The magic happens in blocks at line 19 and line 50. Line 19 slurps up the template file and does string replacements with the <code>vars</code> defined in the corresponding block. That rendered template file is then attached to the correct metadata <code>user-data</code> variable.</p>
 
-<p>So, hopefully this section won&rsquo;t be needed much longer but I do want to point out that there is a hack to make things work. I stumbled <a href="https://github.com/graphql-java/graphql-java-servlet/issues/61">upon a bug</a> that would crash the GraphQL processing with this particular server. The details are a little messy, but until this issue has been resolved we need to get a custom build of the servlet library. Now this is where things are really neat. There is a service out there (how the hell do people do this for free?!) that will take any github repository and build a library for you. <a href="https://jitpack.io/">Jitpack.io</a> is just absolutely amazing and I want to shout out that this service is just incredible.</p>
+<p>Now that we have all of this, how do we run this? Grab the <a href="https://github.com/baens/code-examples-blog.baens.net/tree/cos-gcp-with-terraform">code in this repository</a> to help you run it. After that, make sure to use Terraform 0.11 for this post (sorry, haven&rsquo;t upgraded things to 0.12 yet). Once that is done, go ahead and run <code>terraform init</code> and make sure things install ok.</p>
 
-<p>So the magic little bits I had to sprinkle inside of gradle file were</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle">repositories <span style="color:#f92672">{</span>
-    maven <span style="color:#f92672">{</span> url <span style="color:#e6db74">&#39;https://jitpack.io&#39;</span> <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-
-dependencies <span style="color:#f92672">{</span>
-    compile <span style="color:#e6db74">&#39;com.github.briancullen:graphql-java-servlet:master-SNAPSHOT&#39;</span>
-<span style="color:#f92672">}</span>    </code></pre></div>
-<p>Fairly straight forward. Point to the jitpack repository, and point to the repository that has the fix in it.</p>
+<p>Now that is done, we could go ahead and try and use <code>terraform plan</code>. But that is going to get annoying fast to keep getting asked all the different variables. Let&rsquo;s go ahead and take the <code>terraform.tfvars.tmpl</code>, copy that over to <code>terraform.tfvars</code> and fill out each variable. Then go ahead and run <code>terraform plan</code> and check that things are going to work out. If that plan looks out, go ahead and run <code>terraform apply</code>. With that, things should be created and then you can view your instance at the outputted IP address.</p>
 
   </section>
   <footer>
@@ -142,12 +226,11 @@ dependencies <span style="color:#f92672">{</span>
       <div class="c-pagination__ctrl">
         <div class="c-pagination__newer">
           
-          <a href="https://blog.baens.net/posts/experiment-notes-jaxrs-stream/">Newer</a>
+          <a href="https://blog.baens.net/posts/setting-up-cos-on-gcp/">Newer</a>
           
         </div>
         <div class="c-pagination__older">
           
-          <a href="https://blog.baens.net/posts/add-tests-to-jaxrs-setup/">Older</a>
           
         </div>
       </div>
