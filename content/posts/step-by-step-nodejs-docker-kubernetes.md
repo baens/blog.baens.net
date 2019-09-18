@@ -46,3 +46,35 @@ app.listen(8080, () => console.log('Running server'));
 ```
 
 Let's go ahead and run this file by executing `node index.js`. You should get the `Running server` output on the console and then you can visit [http://localhost:8080](http://localhost:8080) and see the `Hello World` text in the web browser. If you do, congradulations! We have a very simple web server up and running. If not, double check that you have the package installed correctly, and that your `index.js` is in the same folder as the `package.json` and `node_modules` folder. Please reach out if you need help getting past this step so I can help troubleshooting steps.
+
+# Step 2: Dockerize
+
+Now that we have some working code, let's go ahead and get this application stuffed into a Docker container. Create a file named `Dockerfile` and put this inside of it:
+
+{{< highlight Dockerfile "linenos=table" >}}
+FROM node:10.16.3 as builder
+
+WORKDIR /build
+COPY . .
+RUN yarn install
+RUN yarn install --production
+
+FROM node:10.16.3-slim
+
+WORKDIR /app
+
+COPY --from=builder /build/node_modules ./node_modules/
+COPY --from=builder /build/index.js .
+
+CMD node index.js
+{{< / highlight >}}
+
+Let's go through this line by line to understand what we are doing:
+
+*Line 1:* Very first thing you do in a Dockerfile is define where the starting point is. For us, we are going to use the Node with our locked in version. Now, something you may not be familiar with is the `as builder`. We are going to use what is called a [multi-stage build](https://docs.docker.com/develop/develop-images/multistage-build/). This is slightly overkill for our example, but this is a framework for future work. We are going to use a builder that will build up our application. Then we will copy over the smallest amount of bits we absolutely need for a production system. This way we have the smallest image we need to ship into production. Also from a security perspective, we are shipping the smallest amount of thing so our foot print is as small as possible.
+
+*Line 3:* The `[WORKDIR](https://docs.docker.com/engine/reference/builder/#workdir)` command sets our default working from and also sets where we are currently working from. We are going to use a folder at the root called `build` and work from there
+
+*Line 4:* First we are copying over everything into our Docker container with a neat little trick of `COPY . .`. Now, this may look funny so let me explain what kind of magic this is doing. Remember that we are asking the Docker system to copy things into the Docker environment. So the first parameter in `COPY` is referencing from the filesystem relative to the `Dockerfile`. The second parameter is referencing in relation to where in the Docker container it should put those files. For us, we are asking to copy everything from our project, into the Docker container. It's a neat trick I employee instead of trying to copy different folders. If I need to exclude things (which, you will), you will use the `[.dockerignore](https://docs.docker.com/engine/reference/builder/#dockerignore-file)` file.
+
+*Line 5-6:* Now, this looks VERY odd, but just hang in there with me. First we use `yarn install` to get all of the dependencies. While, yes, the very next line we do `yarn install --production`, I do this for a good reason. More likely then not, you will want a build step to do something. Either packing, compiling, transpiling. Take your pick. You can add any step in between those two `yarn install` commands to get the right build system setup that you need.
