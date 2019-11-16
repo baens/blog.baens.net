@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.55.6" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   
   
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
@@ -111,7 +111,7 @@
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
 </span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">import</span> org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory
 <span style="color:#66d9ef">import</span> javax.ws.rs.core.UriBuilder
 
@@ -125,7 +125,7 @@
             <span style="color:#66d9ef">true</span>
     )
 
-    <span style="color:#66d9ef">if</span> (System.getenv()<span style="color:#a6e22e">[&#34;SHUTDOWN_TYPE&#34;]</span>.equals(<span style="color:#e6db74">&#34;INPUT&#34;</span>)) {
+    <span style="color:#66d9ef">if</span> (System.getenv()[<span style="color:#e6db74">&#34;SHUTDOWN_TYPE&#34;</span>].equals(<span style="color:#e6db74">&#34;INPUT&#34;</span>)) {
         println(<span style="color:#e6db74">&#34;Press any key to shutdown&#34;</span>)
         readLine()
         println(<span style="color:#e6db74">&#34;Shutting down from input&#34;</span>)
@@ -168,7 +168,7 @@
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
 </span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle"><span style="color:#f92672">...</span>
 dependencies <span style="color:#f92672">{</span>
     compile <span style="color:#e6db74">&#39;org.jetbrains.kotlin:kotlin-stdlib-jre8&#39;</span>
@@ -196,7 +196,7 @@ dependencies <span style="color:#f92672">{</span>
 </span></span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
 </span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle"><span style="display:block;width:100%;background-color:#3c3d38">EXPOSE <span style="color:#ae81ff">8080</span>
 </span>
 CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#34;</span><span style="color:#f92672">,</span><span style="color:#e6db74">&#34;-jar&#34;</span><span style="color:#f92672">,</span><span style="color:#e6db74">&#34;run.jar&#34;</span><span style="color:#f92672">]</span></code></pre></td></tr></table>
@@ -231,7 +231,7 @@ CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
 </span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">package</span> jaxrs.resources
 
 <span style="color:#66d9ef">import</span> javax.ws.rs.GET
@@ -261,7 +261,7 @@ CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
 </span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">package</span> jaxrs
 
 <span style="color:#66d9ef">import</span> org.glassfish.jersey.server.ResourceConfig
@@ -287,7 +287,7 @@ CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#3
 </span></span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
 </span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">val</span> httpServer = GrizzlyHttpServerFactory.createHttpServer(
             url,
 <span style="display:block;width:100%;background-color:#3c3d38">            Application(),
@@ -309,7 +309,7 @@ CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#3
 </span><span style="display:block;width:100%;background-color:#3c3d38"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
 </span></span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
 </span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle">dependencies <span style="color:#f92672">{</span>
     compile <span style="color:#e6db74">&#39;org.jetbrains.kotlin:kotlin-stdlib-jre8&#39;</span>
     compile <span style="color:#e6db74">&#34;org.glassfish.jersey.containers:jersey-container-grizzly2-http:2.26&#34;</span>
@@ -339,7 +339,7 @@ CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
 </span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin">@GET
 <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">helloWorld</span>() = <span style="color:#e6db74">&#34;Hello World&#34;</span>
     
@@ -370,7 +370,7 @@ CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
 </span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle"><span style="color:#66d9ef">def</span> jerseyVersion <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;2.26&#34;</span>
 
 dependencies <span style="color:#f92672">{</span>
@@ -405,7 +405,7 @@ dependencies <span style="color:#f92672">{</span>
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
 </span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin">register(LoggingFeature(Logger.getLogger(LoggingFeature.DEFAULT_LOGGER_NAME),
         Level.INFO,
         LoggingFeature.Verbosity.PAYLOAD_ANY,
