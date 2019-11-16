@@ -1,0 +1,9 @@
+{{ partial "header.html" . }}
+{{ $pages := where .Site.RegularPages "Type" "in" .Site.Params.mainSections }}
+{{ $paginator := .Paginate (where $pages "Params.hidden" "ne" true) }}
+{{ range $paginator.Pages }}
+{{ .Render "li" }}
+{{ end }}
+{{ partial "pagination.html" .Paginator }}
+{{ partial "siteinfo.html" . }}
+{{ partial "footer.html" . }}
