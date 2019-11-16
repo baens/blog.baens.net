@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  
+  <title>Step by Step: A simple Node.js, Docker, and Kubernetes setup</title>
+  <meta property="og:title" content="Step by Step: A simple Node.js, Docker, and Kubernetes setup" />
+  <meta name="twitter:title" content="Step by Step: A simple Node.js, Docker, and Kubernetes setup" />
+  
+
+  
+
+  <meta name="author" content="Erik Lindblom"/>
+  <meta property="og:site_name" content="Erik Lindblom&#39;s Ramblings" />
+  <meta property="og:url" content="https://blog.baens.net/posts/step-by-step-nodejs-docker-kubernetes/" />
+
+  
+  <meta name="twitter:card" content="summary" />
+
+  
+  <meta name="twitter:site" content="@baensele" />
+  <meta name="twitter:creator" content="@baensele" />
+  
+
+  
+  <meta property="og:type" content="article" />
+  
+  
+  
+  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  
+  
+  <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
+  
+
+</head>
+
+<body>
+  <a href="#main" class="skip-link p-screen-reader-text">Skip to content</a>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;" aria-hidden="true"> <symbol id="icon-500px" viewBox="0 0 16 16"><g> <path d="M3.953 10.512a5.24 5.24 0 0 0 6.996 3.141c.625-.262 1.184-.641 1.666-1.122s.859-1.041 1.122-1.666c.272-.647.412-1.331.412-2.037s-.137-1.394-.412-2.037c-.262-.625-.641-1.184-1.122-1.666s-1.041-.859-1.666-1.122a5.226 5.226 0 0 0-2.037-.413c-.716 0-1.431.144-2.066.413-.509.216-1.372.769-1.875 1.291l-.003.003V.984h7.241c.262-.003.262-.372.262-.491 0-.122 0-.487-.266-.491H4.377a.343.343 0 0 0-.344.341v6.066c0 .197.244.338.472.384.444.094.544-.047.653-.197l.016-.019c.166-.247.681-.766.688-.772a4.262 4.262 0 0 1 3.037-1.25c1.147 0 2.222.444 3.028 1.25a4.245 4.245 0 0 1 1.256 3.019 4.236 4.236 0 0 1-1.25 3.019 4.336 4.336 0 0 1-3.047 1.25 4.136 4.136 0 0 1-2.159-.597l.003-3.688c0-.491.213-1.028.572-1.431a2.09 2.09 0 0 1 1.588-.716c.594 0 1.15.225 1.566.634.409.406.637.95.637 1.528a2.179 2.179 0 0 1-2.206 2.197c-.238 0-.672-.106-.691-.109-.25-.075-.356.272-.391.387-.134.441.069.528.109.541.397.125.659.147 1.003.147a3.173 3.173 0 0 0 3.169-3.169c0-1.734-1.422-3.144-3.166-3.144-.856 0-1.659.328-2.263.919-.575.566-.903 1.319-.903 2.069v.019c-.003.094-.003 2.306-.006 3.031l-.003-.003c-.328-.363-.653-.919-.869-1.488-.084-.222-.275-.184-.534-.103-.125.034-.469.141-.391.394zm3.722-.865c0 .106.097.2.156.253l.019.019c.1.097.194.147.281.147a.181.181 0 0 0 .131-.05c.044-.041.537-.544.588-.591l.553.55c.05.056.106.088.172.088.088 0 .184-.053.284-.156.238-.244.119-.375.063-.438l-.559-.559.584-.588c.128-.137.016-.284-.097-.397-.162-.162-.322-.206-.422-.112l-.581.581-.588-.588a.16.16 0 0 0-.113-.047c-.078 0-.172.053-.275.156-.181.181-.219.306-.125.406l.588.584-.584.584c-.053.05-.078.103-.075.156zm1.278-7.931c-.938 0-1.938.191-2.669.506a.207.207 0 0 0-.134.181.753.753 0 0 0 .069.337c.047.116.166.425.4.334a6.689 6.689 0 0 1 2.334-.444 6.35 6.35 0 0 1 2.469.497c.622.263 1.206.644 1.844 1.194a.22.22 0 0 0 .147.059c.125 0 .244-.122.347-.237.169-.191.287-.35.119-.509a6.858 6.858 0 0 0-2.1-1.356 7.326 7.326 0 0 0-2.825-.563zM14.006 13.3c-.113-.113-.209-.178-.294-.203s-.162-.006-.222.053l-.056.056a6.32 6.32 0 0 1-6.938 1.356 6.336 6.336 0 0 1-2.013-1.356 6.046 6.046 0 0 1-1.356-2.012c-.288-.713-.381-1.247-.413-1.422-.003-.016-.006-.028-.006-.037-.041-.206-.231-.222-.503-.178-.112.019-.459.072-.428.319v.006a7.261 7.261 0 0 0 2.04 3.994 7.266 7.266 0 0 0 10.288 0l.059-.059c.069-.084.134-.225-.159-.516z"/> </g></symbol> <symbol id="icon-codepen" viewBox="0 0 16 16"><g> <path d="M14.777 5.751l-7-4.667a.5.5 0 0 0-.555 0l-7 4.667a.501.501 0 0 0-.223.416v4.667c0 .167.084.323.223.416l7 4.667a.5.5 0 0 0 .554 0l7-4.667a.501.501 0 0 0 .223-.416V6.167a.501.501 0 0 0-.223-.416zM7.5 10.232L4.901 8.5 7.5 6.768 10.099 8.5 7.5 10.232zM8 5.899V2.434l5.599 3.732L11 7.898l-3-2zm-1 0l-3 2-2.599-1.732L7 2.435V5.9zM3.099 8.5L1 9.899V7.101L3.099 8.5zM4 9.101l3 2v3.465l-5.599-3.732L4 9.102zm4 2l3-2 2.599 1.732L8 14.565V11.1zM11.901 8.5L14 7.101v2.798L11.901 8.5z"/> </g></symbol> <symbol id="icon-dribbble" viewBox="0 0 16 16"><g> <path d="M8 16c-4.412 0-8-3.588-8-8s3.587-8 8-8c4.412 0 8 3.587 8 8s-3.588 8-8 8zm6.747-6.906c-.234-.075-2.116-.634-4.256-.291a29.7 29.7 0 0 1 1.328 4.872 6.845 6.845 0 0 0 2.928-4.581zM10.669 14.3c-.103-.6-.497-2.688-1.456-5.181-.016.006-.031.009-.044.016-3.856 1.344-5.241 4.016-5.362 4.266a6.807 6.807 0 0 0 6.863.9zm-7.747-1.722c.156-.266 2.031-3.369 5.553-4.509a7.04 7.04 0 0 1 .269-.081 24.04 24.04 0 0 0-.553-1.159c-3.409 1.022-6.722.978-7.022.975-.003.069-.003.138-.003.209 0 1.753.666 3.356 1.756 4.566zM1.313 6.609c.306.003 3.122.016 6.319-.831a43.092 43.092 0 0 0-2.534-3.953 6.854 6.854 0 0 0-3.784 4.784zM6.4 1.366a36.612 36.612 0 0 1 2.55 4c2.431-.909 3.459-2.294 3.581-2.469A6.799 6.799 0 0 0 6.4 1.366zm6.891 2.325c-.144.194-1.291 1.663-3.816 2.694.159.325.313.656.453.991.05.119.1.234.147.353 2.275-.284 4.534.172 4.759.219a6.816 6.816 0 0 0-1.544-4.256z"/> </g></symbol> <symbol id="icon-facebook" viewBox="0 0 16 16"><g> <path d="M9.5 3H12V0H9.5C7.57 0 6 1.57 6 3.5V5H4v3h2v8h3V8h2.5l.5-3H9V3.5c0-.271.229-.5.5-.5z"/> </g></symbol> <symbol id="icon-feed" viewBox="0 0 16 16"><g> <path d="M2.13 11.733c-1.175 0-2.13.958-2.13 2.126 0 1.174.955 2.122 2.13 2.122a2.126 2.126 0 0 0 2.133-2.122 2.133 2.133 0 0 0-2.133-2.126zM.002 5.436v3.067c1.997 0 3.874.781 5.288 2.196a7.45 7.45 0 0 1 2.192 5.302h3.08c0-5.825-4.739-10.564-10.56-10.564zM.006 0v3.068C7.128 3.068 12.924 8.87 12.924 16H16C16 7.18 8.824 0 .006 0z"/> </g></symbol> <symbol id="icon-flickr" viewBox="0 0 16 16"><g> <path d="M0 8.5a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0zm9 0a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/> </g></symbol> <symbol id="icon-github" viewBox="0 0 16 16"><g> <path d="M8 .198a8 8 0 0 0-2.529 15.591c.4.074.547-.174.547-.385 0-.191-.008-.821-.011-1.489-2.226.484-2.695-.944-2.695-.944-.364-.925-.888-1.171-.888-1.171-.726-.497.055-.486.055-.486.803.056 1.226.824 1.226.824.714 1.223 1.872.869 2.328.665.072-.517.279-.87.508-1.07-1.777-.202-3.645-.888-3.645-3.954 0-.873.313-1.587.824-2.147-.083-.202-.357-1.015.077-2.117 0 0 .672-.215 2.201.82A7.672 7.672 0 0 1 8 4.066c.68.003 1.365.092 2.004.269 1.527-1.035 2.198-.82 2.198-.82.435 1.102.162 1.916.079 2.117.513.56.823 1.274.823 2.147 0 3.073-1.872 3.749-3.653 3.947.287.248.543.735.543 1.481 0 1.07-.009 1.932-.009 2.195 0 .213.144.462.55.384A8 8 0 0 0 8.001.196z"/> </g></symbol> <symbol id="icon-gitlab" viewBox="0 0 28 28"><g> <path d="M1.625 11.031L14 26.89.437 17.046a1.092 1.092 0 0 1-.391-1.203l1.578-4.813zm7.219 0h10.313L14.001 26.89zM5.75 1.469l3.094 9.562H1.625l3.094-9.562a.548.548 0 0 1 1.031 0zm20.625 9.562l1.578 4.813a1.09 1.09 0 0 1-.391 1.203l-13.563 9.844 12.375-15.859zm0 0h-7.219l3.094-9.562a.548.548 0 0 1 1.031 0z"/> </g></symbol> <symbol id="icon-google-plus" viewBox="0 0 16 16"><g> <path d="M5.091 7.147v1.747h2.888c-.116.75-.872 2.197-2.888 2.197-1.737 0-3.156-1.441-3.156-3.216s1.419-3.216 3.156-3.216c.991 0 1.65.422 2.028.784L8.5 4.112c-.888-.828-2.037-1.331-3.409-1.331C2.275 2.784 0 5.059 0 7.875s2.275 5.091 5.091 5.091c2.937 0 4.888-2.066 4.888-4.975 0-.334-.037-.591-.081-.844H5.092zM16 7h-1.5V5.5H13V7h-1.5v1.5H13V10h1.5V8.5H16z"/> </g></symbol> <symbol id="icon-google" viewBox="0 0 16 16"><g> <path d="M8.159 6.856V9.6h4.537c-.184 1.178-1.372 3.45-4.537 3.45C5.428 13.05 3.2 10.788 3.2 8s2.228-5.05 4.959-5.05c1.553 0 2.594.663 3.188 1.234l2.172-2.091C12.125.787 10.319-.001 8.16-.001c-4.422 0-8 3.578-8 8s3.578 8 8 8c4.616 0 7.681-3.247 7.681-7.816 0-.525-.056-.925-.125-1.325L8.16 6.855z"/> </g></symbol> <symbol id="icon-instagram" viewBox="0 0 22 22"><g> <path d="M15.445 0H6.554A6.559 6.559 0 0 0 0 6.554v8.891A6.559 6.559 0 0 0 6.554 22h8.891a6.56 6.56 0 0 0 6.554-6.555V6.554A6.557 6.557 0 0 0 15.445 0zm4.342 15.445a4.343 4.343 0 0 1-4.342 4.342H6.554a4.341 4.341 0 0 1-4.341-4.342V6.554a4.34 4.34 0 0 1 4.341-4.341h8.891a4.342 4.342 0 0 1 4.341 4.341l.001 8.891z"/> <path d="M11 5.312A5.693 5.693 0 0 0 5.312 11 5.694 5.694 0 0 0 11 16.688 5.694 5.694 0 0 0 16.688 11 5.693 5.693 0 0 0 11 5.312zm0 9.163a3.475 3.475 0 1 1-.001-6.95 3.475 3.475 0 0 1 .001 6.95zm5.7-10.484a1.363 1.363 0 1 1-1.364 1.364c0-.752.51-1.364 1.364-1.364z"/> </g></symbol> <symbol id="icon-linkedin" viewBox="0 0 16 16"><g> <path d="M6 6h2.767v1.418h.04C9.192 6.727 10.134 6 11.539 6 14.46 6 15 7.818 15 10.183V15h-2.885v-4.27c0-1.018-.021-2.329-1.5-2.329-1.502 0-1.732 1.109-1.732 2.255V15H6V6zM1 6h3v9H1V6zM4 3.5a1.5 1.5 0 1 1-3.001-.001A1.5 1.5 0 0 1 4 3.5z"/> </g></symbol> <symbol id="icon-mail" viewBox="0 0 22 18"><g> <path fill="#000" d="M0 17.225V.776h22v16.447H0v.002zm3.011-1.815h15.978l-5.111-5.115L11 13.179l-2.877-2.883-5.112 5.114zm-1.216-1.275l5.077-5.09L1.795 3.98v10.155zm13.332-5.09l5.079 5.09V3.979l-5.079 5.066zm-4.126 1.588l8.022-8.027-16.045-.001 8.023 8.028z"/> </g></symbol> <symbol id="icon-npm" viewBox="0 0 16 16"><g> <path d="M0 0v16h16V0H0zm13 13h-2V5H8v8H3V3h10v10z"/> </g></symbol> <symbol id="icon-pinterest" viewBox="0 0 16 16"><g> <path d="M8 1.069a6.93 6.93 0 0 0-2.525 13.384c-.059-.547-.116-1.391.025-1.988.125-.541.813-3.444.813-3.444s-.206-.416-.206-1.028c0-.963.559-1.684 1.253-1.684.591 0 .878.444.878.975 0 .594-.378 1.484-.575 2.306-.166.691.344 1.253 1.025 1.253 1.231 0 2.178-1.3 2.178-3.175 0-1.659-1.194-2.819-2.894-2.819-1.972 0-3.128 1.478-3.128 3.009 0 .597.228 1.234.516 1.581.056.069.066.128.047.2a95.89 95.89 0 0 1-.194.787c-.031.128-.1.153-.231.094-.866-.403-1.406-1.669-1.406-2.684 0-2.188 1.587-4.194 4.578-4.194 2.403 0 4.272 1.712 4.272 4.003 0 2.388-1.506 4.313-3.597 4.313-.703 0-1.362-.366-1.588-.797 0 0-.347 1.322-.431 1.647-.156.603-.578 1.356-.862 1.816a6.93 6.93 0 0 0 8.984-6.622 6.931 6.931 0 0 0-6.931-6.934z"/> </g></symbol> <symbol id="icon-pushpin" viewBox="0 0 16 16"><g> <path d="M8.5 0L7 1.5 8.5 3 5 7H1.5l2.75 2.75L0 15.385V16h.615l5.635-4.25L9 14.5V11l4-3.5L14.5 9 16 7.5 8.5 0zM7 8.5l-1-1L9.5 4l1 1L7 8.5z"/> </g></symbol> <symbol id="icon-search" viewBox="0 0 16 16"><g> <path d="M15.504 13.616l-3.79-3.223c-.392-.353-.811-.514-1.149-.499a6 6 0 1 0-.672.672c-.016.338.146.757.499 1.149l3.223 3.79c.552.613 1.453.665 2.003.115s.498-1.452-.115-2.003zM6 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/> </g></symbol> <symbol id="icon-tumblr" viewBox="0 0 16 16"><g> <path d="M9.001 7v3.659c0 .928-.012 1.463.086 1.727.098.262.342.534.609.691.354.212.758.318 1.214.318.81 0 1.289-.107 2.09-.633v2.405a9.089 9.089 0 0 1-1.833.639A7.93 7.93 0 0 1 9.369 16a4.9 4.9 0 0 1-1.725-.276 4.195 4.195 0 0 1-1.438-.79c-.398-.343-.672-.706-.826-1.091s-.23-.944-.23-1.676V6.556H3.003V4.29c.628-.204 1.331-.497 1.778-.877a4.386 4.386 0 0 0 1.08-1.374C6.133 1.505 6.32.825 6.422 0h2.579v4H13v3H9.001z"/> </g></symbol> <symbol id="icon-twitter" viewBox="0 0 16 16"><g> <path d="M16 3.538a6.461 6.461 0 0 1-1.884.516 3.301 3.301 0 0 0 1.444-1.816 6.607 6.607 0 0 1-2.084.797 3.28 3.28 0 0 0-2.397-1.034 3.28 3.28 0 0 0-3.197 4.028 9.321 9.321 0 0 1-6.766-3.431 3.284 3.284 0 0 0 1.015 4.381A3.301 3.301 0 0 1 .643 6.57v.041A3.283 3.283 0 0 0 3.277 9.83a3.291 3.291 0 0 1-1.485.057 3.293 3.293 0 0 0 3.066 2.281 6.586 6.586 0 0 1-4.862 1.359 9.286 9.286 0 0 0 5.034 1.475c6.037 0 9.341-5.003 9.341-9.341 0-.144-.003-.284-.009-.425a6.59 6.59 0 0 0 1.637-1.697z"/> </g></symbol> <symbol id="icon-vimeo" viewBox="0 0 16 16"><g> <path d="M15.994 4.281c-.072 1.556-1.159 3.691-3.263 6.397-2.175 2.825-4.016 4.241-5.522 4.241-.931 0-1.722-.859-2.366-2.581-.431-1.578-.859-3.156-1.291-4.734-.478-1.722-.991-2.581-1.541-2.581-.119 0-.538.253-1.256.753l-.753-.969c.791-.694 1.569-1.388 2.334-2.081 1.053-.909 1.844-1.387 2.372-1.438 1.244-.119 2.013.731 2.3 2.553.309 1.966.525 3.188.647 3.666.359 1.631.753 2.447 1.184 2.447.334 0 .838-.528 1.509-1.588.669-1.056 1.028-1.862 1.078-2.416.097-.912-.262-1.372-1.078-1.372a2.98 2.98 0 0 0-1.184.263c.787-2.575 2.287-3.825 4.506-3.753 1.641.044 2.416 1.109 2.322 3.194z"/> </g></symbol> <symbol id="icon-wordpress" viewBox="0 0 16 16"><g> <path d="M2 8c0 2.313 1.38 4.312 3.382 5.259L2.52 5.622A5.693 5.693 0 0 0 2 8zm10.05-.295c0-.722-.266-1.222-.495-1.612-.304-.482-.589-.889-.589-1.371 0-.537.418-1.037 1.008-1.037.027 0 .052.003.078.005A6.064 6.064 0 0 0 8 2.156 6.036 6.036 0 0 0 2.987 4.79c.141.004.274.007.386.007.627 0 1.599-.074 1.599-.074.323-.018.361.444.038.482 0 0-.325.037-.687.055l2.185 6.33 1.313-3.835-.935-2.495a12.304 12.304 0 0 1-.629-.055c-.323-.019-.285-.5.038-.482 0 0 .991.074 1.58.074.627 0 1.599-.074 1.599-.074.323-.018.362.444.038.482 0 0-.326.037-.687.055l2.168 6.282.599-1.947c.259-.809.457-1.389.457-1.889zm-3.945.806l-1.8 5.095a6.148 6.148 0 0 0 3.687-.093.52.52 0 0 1-.043-.081L8.105 8.511zm5.16-3.315c.026.186.04.386.04.601 0 .593-.114 1.259-.456 2.093l-1.833 5.16c1.784-1.013 2.983-2.895 2.983-5.051a5.697 5.697 0 0 0-.735-2.803zM8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm0 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14z"/> </g></symbol> <symbol id="icon-youtube" viewBox="0 0 16 16"><g> <path d="M15.841 4.8s-.156-1.103-.637-1.587c-.609-.637-1.291-.641-1.603-.678-2.237-.163-5.597-.163-5.597-.163h-.006s-3.359 0-5.597.163c-.313.038-.994.041-1.603.678C.317 3.697.164 4.8.164 4.8S.005 6.094.005 7.391v1.213c0 1.294.159 2.591.159 2.591s.156 1.103.634 1.588c.609.637 1.409.616 1.766.684 1.281.122 5.441.159 5.441.159s3.363-.006 5.6-.166c.313-.037.994-.041 1.603-.678.481-.484.637-1.588.637-1.588s.159-1.294.159-2.591V7.39c-.003-1.294-.162-2.591-.162-2.591zm-9.494 5.275V5.578l4.322 2.256-4.322 2.241z"/> </g></symbol></svg>
+  <header class="l-header">
+    
+    <p class="c-title p-title"><a href="https://blog.baens.net/" class="p-title__link">Erik Lindblom&#39;s Ramblings</a></p>
+    
+    
+  </header>
+  <main id="main" class="l-main">
+
+
+<article class="p-article">
+  <header>
+    <h1>Step by Step: A simple Node.js, Docker, and Kubernetes setup</h1>
+    <div>
+      <div class="c-time">
+        Posted on
+        <time datetime="2019-11-16T00:00:00Z">
+          Nov 16, 2019
+        </time>
+      </div>
+      
+    </div>
+  </header>
+  
+  <section id="js-article" class="p-article__body">
+    
+
+<p>I&rsquo;ve now been playing with Node.js, Docker, and Kubernetes for quite some time. And it just so happen that recently someone needed a good introduction to Node.js, Docker, and Kubernetes. However, after searching online I couldn&rsquo;t find one that just had a few simple things to walk through. So, here this is. Hopefully this blog post will demonstrate how to create a simple Node.js, create a Docker container, demonstrate it running, then deploy that Docker container to a local Kubernetes setup. There will be light touches on what exactly all of those parts are and hopefully give you a starting point to start exploring these technology stacks.</p>
+
+<h1 id="step-0-prerequisites">Step 0: Prerequisites</h1>
+
+<p>I am going to assume a few things in this blog post. First, you have <a href="https://nodejs.org/">Node.js</a> installed. I prefer to use <a href="https://github.com/nvm-sh/nvm">nvm</a> as my manager of my node instance, but there are several out there that can do the trick. For this blog post, I will be using the latest LTS Dubnium release 10.16.3. I will also be using <a href="https://yarnpkg.com/">yarn</a> as the Node.js package manager.</p>
+
+<p>Next, we will need <a href="https://www.docker.com/">Docker</a> installed. If you are using Mac or Windows, go ahead and get the wonderful <a href="https://www.docker.com/products/docker-desktop">Docker for Mac/Windows</a> tools. This will give you a wonderful set of tools to use Docker on those platforms. For Linux, go aheads and get a <a href="https://docs.docker.com/v17.12/install/#server">Docker CE</a> from what ever distro package you have. For this blog post, I will be running Docker for Mac 2.1.3.0. I will also verify that it works on Linux, but sadly don&rsquo;t have a way to verify Windows at this time. There isn&rsquo;t anything too complicated here so I have some confidence that it should work across platforms fairly easily.</p>
+
+<p>Next, we will need a Kubernetes instance running locally. For Mac and Windows, that is built into the <a href="https://docs.docker.com/docker-for-mac/#kubernetes">Docker for Desktop</a> tool. For Linux, I recommend <a href="https://kubernetes.io/docs/tasks/tools/install-minikube/">Minikube</a>.</p>
+
+<p>That should be all of the base tools you will need. Hopefully those are all fairly easy to install, but if you run into issues, please reach out to me and I&rsquo;ll attempt to help and add notes to this blog post for future visitors.</p>
+
+<h1 id="step-1-a-basic-node-server-running">Step 1: A basic node server running</h1>
+
+<p>First thing first, let&rsquo;s setup our environment with a very basic Node.js <a href="https://expressjs.com">Express</a> server and get it running. Get to a blank directory and run the following command:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&gt; yarn init -y</code></pre></div>
+<p>Next, let&rsquo;s get our <code>Express</code> library. We do that by running the following command:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&gt; yarn add express@4.17.1</code></pre></div>
+<p><strong><em>Rant</em></strong>: Now, if you are familiar with the Node.js ecosystem you may find it very odd that I added a specific version of the express library. First, you should definitely try and lock your packages down to as specific version as you can. Personally, I&rsquo;ve been bitten far too many times by drifting dependencies. Yes, the lock files help this, but it still happens from time to time. So try and lock things down to as specific as possible. I hope you will thank me later, and I&rsquo;m sad that the Node community uses fuzzy versions far too often in my opinion.</p>
+
+<p>This should install the <code>Express</code> library and create a <code>yarn.lock</code> file and a <code>node_modules</code> folder with all the files needed for that library. Now that we have <code>Express</code>, let&rsquo;s create a very simple server. Here is what you want in the file <code>index.js</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">express</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;express&#39;</span>);
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">app</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">express</span>();
+
+<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#39;/&#39;</span>, (<span style="color:#a6e22e">request</span>, <span style="color:#a6e22e">response</span>) =&gt; <span style="color:#a6e22e">response</span>.<span style="color:#a6e22e">send</span>(<span style="color:#e6db74">&#39;Hello World&#39;</span>));
+
+<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">listen</span>(<span style="color:#ae81ff">8080</span>, () =&gt; <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#39;Running server&#39;</span>));
+</code></pre></div>
+<p>Let&rsquo;s go ahead and run this file by running the following in a command prompt: <code>node index.js</code>. You should get the <code>Running server</code> output on the console and then you can visit <a href="http://localhost:8080">http://localhost:8080</a> and see the <code>Hello World</code> text in the web browser. If you do, congratulations! We have a very simple web server up and running. If not, double check that you have the package installed correctly, and that your <code>index.js</code> is in the same folder as the <code>package.json</code> and <code>node_modules</code> folder. Please reach out if you need help getting past this step so I can help troubleshooting steps.</p>
+
+<h1 id="step-2-dockerize">Step 2: Dockerize</h1>
+
+<p>Now that we have some working code, let&rsquo;s go ahead and get this application stuffed into a Docker container. Create a file named <code>Dockerfile</code> and put this inside of it:</p>
+
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> node:10.16.3 as builder</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> /build</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> . .<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> yarn install<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> yarn install --production<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> node:10.16.3-slim</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> /app</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> --from<span style="color:#f92672">=</span>builder /build/node_modules ./node_modules/<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> --from<span style="color:#f92672">=</span>builder /build/index.js .<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">CMD</span> node index.js</code></pre></td></tr></table>
+</div>
+</div>
+
+<p>Let&rsquo;s go through this line by line to understand what we are doing:</p>
+
+<p><em>Line 1:</em> Very first thing you do in a Dockerfile is define where the starting point is. For us, we are going to use the Node with our locked in version. Now, something you may not be familiar with is the <code>as builder</code>. We are going to use what is called a <a href="https://docs.docker.com/develop/develop-images/multistage-build/">multi-stage build</a>. This is slightly overkill for our example, but this is a framework for future work. We are going to use a builder that will build up our application. Then we will copy over the smallest amount of bits we absolutely need for a production system. This way we have the smallest image we need to ship into production. Also from a security perspective, we are shipping the smallest amount of thing so our foot print is as small as possible.</p>
+
+<p><em>Line 3:</em> The <code>[WORKDIR](https://docs.docker.com/engine/reference/builder/#workdir)</code> command sets our default working from and also sets where we are currently working from. We are going to use a folder at the root called <code>build</code> and work from there</p>
+
+<p><em>Line 4:</em> First we are copying over everything into our Docker container with a neat little trick of <code>COPY . .</code>. Now, this may look funny so let me explain what kind of magic this is doing. Remember that we are asking the Docker system to copy things into the Docker environment. So the first parameter in <code>COPY</code> is referencing from the filesystem relative to the <code>Dockerfile</code>. The second parameter is referencing in relation to where in the Docker container it should put those files. For us, we are asking to copy everything from our project, into the Docker container. It&rsquo;s a neat trick I employ instead of trying to copy different folders. If I need to exclude things, you will use the <code>[.dockerignore](https://docs.docker.com/engine/reference/builder/#dockerignore-file)</code> file.</p>
+
+<p><em>Line 5-6:</em> Now, this looks VERY odd, but just hang in there with me. First we use <code>yarn install</code> to get all of the dependencies. While, yes, the very next line we do <code>yarn install --production</code>, I do this for a good reason. More likely then not, you will want a build step to do something. Either packing, compiling, transpiling, take your pick. You can add any step in between those two <code>yarn install</code> commands to get the right build system setup that you need.</p>
+
+<p>Now that we have a docker image, let&rsquo;s just go through and test this docker image and make sure things work just like they did in the last step. First, let&rsquo;s build the docker image by running <code>docker build . -t myimage</code>. The <code>-t myimage</code> tags the image with a name we can easily use.</p>
+
+<p>To run the image you just built run <code>docker run --rm -it -p 8080:8080 myimage</code>. You should be able to hit <a href="http://localhost8080">http://localhost:8080</a> and get the same <code>Hello World</code> text like you did in the last time. hit <code>ctrl+c</code> to stop the image.</p>
+
+<h1 id="step-3-pushing-a-docker-image-and-prep-work-for-kubernetes">Step 3: Pushing a docker image and prep work for kubernetes</h1>
+
+<p>In this tutorial, I am going to assume you have a kubernetes instance up and running somewhere. If you don&rsquo;t, you can either use <a href="https://www.docker.com/blog/kubernetes-is-now-available-in-docker-desktop-stable-channel/">Docker for Desktop</a> which has Kubernetes built in for both Mac and Windows. Or, you can use <a href="https://github.com/kubernetes/minikube">minikube</a>.</p>
+
+<p>No matter where you have it running. This tutorial will assume you have <code>kubectl</code> pointed to a running Kubernetes instance and that you also have a registry you can upload your docker image.</p>
+
+<p>Let me actually go into detail a little bit about that last thing. We need to push the Docker image to a registry for your Kubernetes instance to pull down. Now, there a wide range of place you can do that. And that require a wide variety of different methods to do it. I am going to assume that you can <code>docker push</code> some kind of image somewhere and that is accessible to your Kubernetes cluster. If you and running the Docker for Desktop tool, a <code>docker build</code> will suffice. If you are running Minikube, you will need to <a href="https://minikube.sigs.k8s.io/docs/tasks/docker_daemon/">reuse the Docker daemon</a>. If you are running a cluster in the cloud somewhere, you will have to make sure that <a href="https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/">Kubernetes is setup to pull from that registry</a>.</p>
+
+<h1 id="step-4-deploying-that-image-to-kubernetes">Step 4: Deploying that image to Kubernetes</h1>
+
+<p>With your image now ready to deploy, lets go through what that would require. For this tutorial we are going to create a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/">deployment</a> and a <a href="https://kubernetes.io/docs/concepts/services-networking/service/">service</a>.</p>
+
+<p>A deployment is a Kubernetes object that defines how to create &ldquo;<a href="https://kubernetes.io/docs/concepts/workloads/pods/pod/">pods</a>&rdquo;. A pod is a single (but can be multiple) runner Docker instance. A deployment controls how many pods are currently running and has all of the logic built into making sure there are enough pods to satisfy your requirements. It also helps control roll outs as you update your image. This means that as you roll out a new image, it will bring a new pod up, make sure the pod is running, and then kill off old pods in a controlled manner. Deployments are usually your bread and butter, but they aren&rsquo;t the only objects that control pods. There are a <a href="https://kubernetes.io/docs/concepts/architecture/controller/">few different types</a> of controllers out there but this tutorial will only be focused on the deployment variety.</p>
+
+<p>So, if a deployment controls whats running inside of Kubernetes, how do we expose that pod to network traffic? Like maybe public internet traffic? That is where services come in. A service is a Kubernetes object that controls how network connections are made to the pods. A service defines which ports are open and are connected, and whether the pods should be exposed internally to the Kubernetes instance or externally. Services can also do <a href="https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer">load balancing</a> if you desire.</p>
+
+<p>Now, while this glossed over a lot of details, I think this should make you dangerous enough to start with. Let&rsquo;s look at how a deployment and service object are created and deployed to Kubernetes now. Let&rsquo;s take a look at this file:</p>
+
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml">---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  labels:
+    app: my-app
+spec:
+  replicas: <span style="color:#ae81ff">3</span>
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-app
+        image: myimage
+        imagePullPolicy: Never
+        ports:
+        - containerPort: <span style="color:#ae81ff">8080</span>
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: my-app
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: <span style="color:#ae81ff">8080</span>
+      targetPort: <span style="color:#ae81ff">8080</span></code></pre></td></tr></table>
+</div>
+</div>
+
+<p>Holy crap batman thats alot! Let&rsquo;s walk through what all of this means.</p>
+
+<p><em>Line 1 &amp; 24</em>: For this example I put both objects inside of one file. Not always a normal thing todo, but its an option. The <code>---</code> is a YAML file separator for multiple YAML objects inside of a file. Just want to point this out first if you see these files separated in the wild. Thats fine, I just wanted to give you one file to play with instead of multiple.</p>
+
+<p><em>Line 2, 3, 25 &amp; 26</em>: This describe the type of Kubernetes object. There are two parts to this. The <code>apiVersion</code>, and the <code>kind</code> of object. These set of properties let&rsquo;s Kubernetes define a whole host of options and let&rsquo;s them version out behavior for certain objects. You can find which objects are support by running <code>kubectl api-resources</code> and the versions of those with <code>kubectl api-versions</code>. The resources list which API group is used, which you cross-reference to which version you should use. If the resource is listed blank, its part of &ldquo;core&rdquo; which is usually just <code>v1</code>. You usually don&rsquo;t fiddle with this much, and just copy from project to project. But its better to be aware of why this is here then just blindly copying it.</p>
+
+<p><em>Line 4 - 7</em>: This section describes the metadata for the deployment. Metadata is just that, information about the object. For a deployment there are two main parts, a <code>name</code> which is exactly that, and is required. Then some kind of <code>label</code>. The label is important because this gives you the ability to &ldquo;select&rdquo; this deployment depending on what kind of values you give the object. This will become important later on in our service.</p>
+
+<p><em>Line 8</em>: This starts the meat of the deployment object, the <code>spec</code> or specification of what you want to deploy.</p>
+
+<p><em>Line 9</em>: The <code>replicas</code> is the number of instances you want running.</p>
+
+<p><em>Line 10 - 12</em>: This section describes what pods the deployment controls. Usually this means you create a selector that has the same matching labels as your <code>template</code> section. I personally haven&rsquo;t come across a case where this didn&rsquo;t match up with what I had in the <code>template</code> section, but I&rsquo;m sure there are cases out there.</p>
+
+<p><em>Line 13</em>: This is the start of the <code>template</code> section. The template section will describe what each pod will have. This includes the image of the container, along with any environment variables, files, etc that are needed to run that pod.</p>
+
+<p><em>Line 14 - 16</em>: This section contains the <code>metadata</code> for each pod that is run. Again, usually this just contains the a label that has information for your selector in the above section.</p>
+
+<p><em>Line 17</em>: This defines the <code>spec</code> for a pod. In this example we will have only 1 container, but this is the section we would add information for an <a href="https://kubernetes.io/docs/concepts/workloads/pods/init-containers/"><code>initContainer</code></a> or <a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/#how-pods-manage-multiple-containers">side car containers</a>.</p>
+
+<p><em>Line 18 - 23</em>: This is the meat of the pod. We define a <code>name</code>, a <code>image</code>, and the <code>ports</code> that are exposed. The name can be whatever you want, it doesn&rsquo;t necessarily have to match the deployment name, but usually does for making life easier later. The <code>image</code> is the location of the docker image. In this example I am assuming that you are using the Docker for Desktop tool, which means we can give it the same name as the last step (<code>myimage</code>). I also added a <code>imagePullPolicy</code> because the Kubernetes instance inside of that tool should not try and reach out to the internet for this image. I would recommend <a href="https://kubernetes.io/docs/concepts/containers/images/#updating-images">reading up on which image pull policy</a> is right for your situation. We list the ports that are exposed next. This isn&rsquo;t completely necessarily but usually added for documentation proposes.</p>
+
+<p><em>Line 29</em>: This section defines our service and how it operates. Let&rsquo;s dig into this section now.</p>
+
+<p><em>Line 30 - 31</em>: This defines what pods should be exposed through this service. This usually matches very closely to what the deployment had in its selector as well.</p>
+
+<p><em>Line 32</em>: Since we want to expose this service we want to put a <code>type</code> on it. There are a <a href="https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types">couple of types</a>, and the one we are interested in is the <code>LoadBalancer</code>. This is because we want to expose this service outside of Kubernetes, and that requires a load balancer for that.</p>
+
+<p><em>Line 33 - 36</em>: This defines the ports that are going to be exposed from this service. For our example, we are going to take the pods port 8080 (<code>targetPort</code>) and expose it to the outside world on that same port 8080 (<code>port</code>). We could have exposed it on port 80 if we wanted too. But for this instance, we just went for the easy route of aligning those numbers up.</p>
+
+<p>Phew, that is a lot. So what should I do with all of this now? Well, let&rsquo;s deploy it. To do that we would run <code>kubectl apply -f deploy.yaml</code>. This of courses assumes that all of the above is in a file called <code>deploy.yaml</code>. Kubectl would then submit that file to Kubernetes and the magic starts to happen on creating the pods. To see your pods up and running we would run <code>kubectl get pods</code> and <em>hopefully</em> you would see something like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&gt; kubectl get pods
+NAME                    READY   STATUS        RESTARTS   AGE
+my-app-bb697dc4-q6vl7   <span style="color:#ae81ff">1</span>/1     Running       <span style="color:#ae81ff">0</span>          14s
+my-app-bb697dc4-qpjgf   <span style="color:#ae81ff">1</span>/1     Running       <span style="color:#ae81ff">0</span>          14s
+my-app-bb697dc4-vsxcv   <span style="color:#ae81ff">1</span>/1     Running       <span style="color:#ae81ff">0</span>          14s</code></pre></div>
+<p>As you can see, you see the <code>name</code> attribute come through. Along with a deployment number (<code>bb697dc4</code> in this example) and a pod number (<code>q6vl7</code>, <code>qpjgf</code>, and <code>vsxcv</code> in this example).</p>
+
+<p>If everything is running, we should then be able to hit the service. To view the status of the service we would run <code>kubectl get service</code> and see something like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">&gt; kubectl get service
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP   PORT<span style="color:#f92672">(</span>S<span style="color:#f92672">)</span>          AGE
+my-service   LoadBalancer   <span style="color:#ae81ff">10</span>.106.118.92   localhost     <span style="color:#ae81ff">8080</span>:32361/TCP   44m</code></pre></div>
+<p>If we hit that <code>External-IP</code> with the port, we should see the same <code>Hello World</code> we saw in the above 2 examples.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>Well, we made it! I know there is a lot in here, and there is definitely a lot more, but hopefully this gives you enough pieces that you can start putting your own software together that can run on Kubernetes. Always feel free to reach out to me if you have question or comments.</p>
+
+  </section>
+  <footer>
+    
+    <nav class="p-pagination c-pagination">
+      <div class="c-pagination__ctrl">
+        <div class="c-pagination__newer">
+          
+          
+        </div>
+        <div class="c-pagination__older">
+          
+          <a href="https://blog.baens.net/posts/setting-up-cos-on-gcp-with-terraform/">Older</a>
+          
+        </div>
+      </div>
+    </nav>
+    
+
+
+    
+<aside class="p-author">
+  
+  
+  <div class="p-author__body">
+    
+    <p class="c-title p-author__name ">Erik Lindblom</p>
+    
+    
+    <p>A software developer trying to solve the problems with code.</p>
+    
+    
+    <p>
+      <a href="mailto:erik@baens.net">
+        Contact me
+      </a>
+    </p>
+    
+  </div>
+  
+</aside>
+
+
+  </footer>
+</article>
+  </main>
+  
+
+  <footer class="l-footer">
+    
+<ul class="c-links">
+  
+  <li class="c-links__item">
+    <a href="https://twitter.com/baensele" target="_blank">
+      <svg viewBox="0 0 64 64" class="c-links__icon">
+        <title>twitter</title>
+        <use xlink:href="#icon-twitter"></use>
+      </svg>
+    </a>
+  </li>
+  
+  
+  
+  
+  
+  <li class="c-links__item">
+    <a href="https://github.com/baens" target="_blank">
+      <svg viewBox="0 0 64 64" class="c-links__icon">
+        <title>github</title>
+        <use xlink:href="#icon-github"></use>
+      </svg>
+    </a>
+  </li>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+
+
+    <p class="p-copyright">
+      
+        
+          
+            <a href="https://baens.net">Erik Lindblom</a>
+          
+        
+        &nbsp;&bull;&nbsp;
+        2019
+
+        
+          &nbsp;&bull;&nbsp;
+          <a href="https://blog.baens.net/">Erik Lindblom&#39;s Ramblings</a>
+        
+      
+    </p>
+  </footer>
+
+  
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-110426083-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+    
+  
+
+</body>
+</html>
+
