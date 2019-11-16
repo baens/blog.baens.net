@@ -1,6 +1,6 @@
 ---
 title: "Step by Step: A simple Node.js, Docker, and Kubernetes setup"
-date: 2019-09-21
+date: 2019-11-16
 ---
 
 I've now been playing with Node.js, Docker, and Kubernetes for quite some time. And it just so happen that recently someone needed a good introduction to Node.js, Docker, and Kubernetes. However, after searching online I couldn't find one that just had a few simple things to walk through. So, here this is. Hopefully this blog post will demonstrate how to create a simple Node.js, create a Docker container, demonstrate it running, then deploy that Docker container to a local Kubernetes setup. There will be light touches on what exactly all of those parts are and hopefully give you a starting point to start exploring these technology stacks.
