@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  <meta name="generator" content="Hugo 0.72.0" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   
   
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
@@ -63,39 +63,21 @@
   </header>
   
   <section id="js-article" class="p-article__body">
-    
-
-<h1 id="background">Background</h1>
-
+    <h1 id="background">Background</h1>
 <p>This blog post aims to help anyone trying to make a <a href="https://www.packer.io/">Packer</a> image, tested with <a href="https://www.inspec.io/">Inspec</a>, on the <a href="https://cloud.google.com/">Google Cloud Platform</a>. I have recently been using the these tools for my day-to-day and I wanted to make these three tools work together, which was surprisingly difficult. This blog post will hopefully help anyone out there that may be trying todo the same.</p>
-
 <p>What I want from these tools is have Packer spin up a new VM, run all the build steps, then test that VM with Inspec. Also, I didn&rsquo;t want to clutter up the VM with anything more installed then it really needed, so I didn&rsquo;t want Inspec running with all of its tools installed on the new VM. That means I wanted Inspec to run from my box then connect through SSH to the new box. Sounds simple right? Well, there were enough gotchas and lack of search resources out there that I felt I needed to write this up.</p>
-
 <p>So enough yap, let&rsquo;s see what the code looks like. If you want to see everything put together, <a href="https://github.com/baens/code-examples-blog.baens.net/tree/packer-gcp-ssh-key">code repository here</a>.</p>
-
 <h1 id="the-problems-i-faced">The problems I faced</h1>
-
 <p>So let me walk through the problems I encountered along this journey that I will try and demonstrate answers to.</p>
-
 <p>Problem #1: The first problem I hit was that I needed Inspec to talk to the new VM, but Packer doesn&rsquo;t provide those variables very easily. What I needed was the host IP of the VM running in the cloud. Since Packer didn&rsquo;t provide that out of the box, I had to figure out a way to get around that.</p>
-
 <p>Problem #2: Once I did establish a connection, I then needed to authenticate Inspec with the VM. Inspec could natively connect over SSH, so creating and establishing a SSH key to login with was the obvious choice. However, Packer again didn&rsquo;t provide a convenient way of doing this so I need to establish that key myself and set a few manual things to make that work.</p>
-
 <h1 id="solving-problem-1-getting-the-ip-of-the-packer-vm-in-gcp">Solving Problem 1: Getting the IP of the Packer VM in GCP</h1>
-
 <p>This sounds easy enough but is surprising difficult: how do I get the IP of the currently running VM that Packer is communicating with? One approach might ping some remote web site that tell you your public IP, but that seems ridiculous to introduce another layer outside of your control. My search stumbled upon a number of examples of how to do this on AWS but very little on GCP. However, people using AWS did give me an idea of what todo, or at the very least what to search for.</p>
-
 <p>What people use on AWS often is called the Metadata server. The Metadata server is a service for every VM running on <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html">AWS</a> (and <a href="https://cloud.google.com/compute/docs/storing-retrieving-metadata">GCP</a>) that can tell you about the instance you are running on. This was the thing I needed, I found the <a href="https://cloud.google.com/compute/docs/storing-retrieving-metadata">documentation for GCP</a> and sure enough, it had information on all of the exposed IP addresses. The particular address I needed was located at this URL: <code>http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip</code>. And whats even better was that this was generic across instances so I didn&rsquo;t have to do some fancy logic depending on the box.</p>
-
 <p>Now that I have the HTTP address of where I can get the external IP address, how would I exactly retrieve that information from the command line. Thankfully, curl was already installed so I crafted this command:</p>
-
 <pre><code>curl  -H \&quot;Metadata-Flavor: Google\&quot; metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip
-</code></pre>
-
-<p>And executed that and viola, the IP address I needed.</p>
-
+</code></pre><p>And executed that and viola, the IP address I needed.</p>
 <p>Now, something to be pointed out. That HTTP header we added (<code>Metadata-Flavor: Google</code>) is required. This is a safe guard to protect you incase you accidentally point something wrong to this location.</p>
-
 <p>Now that I have my IP address, how do I use it? Again, long searches didn&rsquo;t show a way to pipeline variables from one Packer step to another so what was I going todo? I&rsquo;m not 100% sure how I stumbled upon but I found a very neat trick of downloading the file after you created it. Here is what that will look like in Packer&rsquo;s provisioning steps:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json"><span style="color:#e6db74">&#34;provisioners&#34;</span><span style="color:#960050;background-color:#1e0010">:</span> [
     {
@@ -108,17 +90,13 @@
         <span style="color:#f92672">&#34;source&#34;</span>: <span style="color:#e6db74">&#34;/tmp/ip&#34;</span>,
         <span style="color:#f92672">&#34;destination&#34;</span>: <span style="color:#e6db74">&#34;./host&#34;</span>
     }
-]</code></pre></div>
-<p>And that solved the problem. Just have to create a file with data from a special internal endpoint, then download that file for use in next steps. Easy! Or at least easy once you work it out. Go figure!</p>
-
+]
+</code></pre></div><p>And that solved the problem. Just have to create a file with data from a special internal endpoint, then download that file for use in next steps. Easy! Or at least easy once you work it out. Go figure!</p>
 <h1 id="solving-problem-2-communicating-over-ssh">Solving Problem 2: Communicating over SSH</h1>
-
 <p>Now that I had the IP address, I need to communicate from Inpsec to that IP. Inspec has several ways of communicating with the machine. It can do it locally or even execute on a remote machine. I wanted to execute locally but communicate on the remote machine so that I didn&rsquo;t have to install anything on the remote box. This lead me down the path that I needed to use SSH to communicate with that remote box. By default SSH requires a username and password, and since I was going to be using this in an automated build environment. Having something prompt for a username and password wasn&rsquo;t going to fly, never mind the fact that isn&rsquo;t very secure either. So I need to setup a SSH key somehow in the automated process to get logged into the remote box.</p>
-
 <p><a href="https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys#edit-ssh-metadata">Google cloud provides a way for you to provide a SSH key</a> that will get installed on the box for you to use. So first let&rsquo;s generate the key. The way Google parses the key information is it looks for comments inside of the key for which user is associated with this. Here is the command I use to generate the key:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ssh-keygen -f inspec-key -C packer -N <span style="color:#e6db74">&#39;&#39;</span> -m PEM</code></pre></div>
-<p>The command will output a set of SSH key files called <code>inspec-key</code> with a comment of <code>packer</code> and the <code>-N</code> flag is the password to be used (blank in this case). You need to specify the PEM format because some of the Ruby modules that will be loaded can&rsquo;t parse newer OpenSSH key formats.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ssh-keygen -f inspec-key -C packer -N <span style="color:#e6db74">&#39;&#39;</span> -m PEM
+</code></pre></div><p>The command will output a set of SSH key files called <code>inspec-key</code> with a comment of <code>packer</code> and the <code>-N</code> flag is the password to be used (blank in this case). You need to specify the PEM format because some of the Ruby modules that will be loaded can&rsquo;t parse newer OpenSSH key formats.</p>
 <p>Alright, I now have my SSH key, now I need to place that SSH key for Packer to use when it creates the VM instance. For that you need to modify the builder with a few parameters. Here is what the builder turns into:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json"><span style="color:#e6db74">&#34;builders&#34;</span><span style="color:#960050;background-color:#1e0010">:</span> [
         {
@@ -128,28 +106,23 @@
                 <span style="color:#f92672">&#34;ssh-keys&#34;</span>: <span style="color:#e6db74">&#34;packer:{{user `inspec-key`}}&#34;</span>
             }
         }
-    ]<span style="color:#960050;background-color:#1e0010">,</span></code></pre></div>
-<p>And here is what the command would look like to run Packer:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">packer build -var inspec-key<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>cat inspec-key.pub<span style="color:#66d9ef">)</span> image.json</code></pre></div>
-<p>The <code>metadata/ssh-keys</code> is the important part. You add the metadata with the username, then the contents of the key. This tripped me up at first because I thought the key had already been setup with all of the relevant information, but trial and error found the right format. And just to be clear, the format is <code>&lt;username&gt;:&lt;ssh public key data&gt;</code>.</p>
-
+    ]<span style="color:#960050;background-color:#1e0010">,</span>
+</code></pre></div><p>And here is what the command would look like to run Packer:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">packer build -var inspec-key<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>cat inspec-key.pub<span style="color:#66d9ef">)</span> image.json
+</code></pre></div><p>The <code>metadata/ssh-keys</code> is the important part. You add the metadata with the username, then the contents of the key. This tripped me up at first because I thought the key had already been setup with all of the relevant information, but trial and error found the right format. And just to be clear, the format is <code>&lt;username&gt;:&lt;ssh public key data&gt;</code>.</p>
 <p>Alright, now that we have our new instance up and running, how do we connect Inspec? Well, again, I didn&rsquo;t really want to have to install another tool so let&rsquo;s use docker to run the actual tool. The docker command will look like this:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker run --rm -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>:/workspace -w /workspace chef/inspec:3.2.7 detect -t ssh://packer@<span style="color:#66d9ef">$(</span> cat host <span style="color:#66d9ef">)</span> -i inspec-key</code></pre></div>
-<p>Few things to explain in this:</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker run --rm -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>:/workspace -w /workspace chef/inspec:3.2.7 detect -t ssh://packer@<span style="color:#66d9ef">$(</span> cat host <span style="color:#66d9ef">)</span> -i inspec-key
+</code></pre></div><p>Few things to explain in this:</p>
 <ul>
 <li><code>-v $(pwd):/workspace -w /workspace</code> - Take your current directory and mount it at <code>/workspace</code> and make the current directory when the docker container is running inside of that directory.</li>
 <li><code>chef/inspec:3.2.7 detect</code> - The docker image and the command to run. For the demo I used <code>detect</code> just to show you it connects. When you actually want to run tests you run <code>exec</code>.</li>
 <li><code>-t ssh://packer@$( cat host ) -i inspec-key</code> - Here are a few of the magic bits. Tell Inspect to connect through <code>ssh</code> with the data from the <code>host</code> file we downloaded in the previous step. Next, use the <code>inspec-key</code> file we created earlier.</li>
 </ul>
-
 <h1 id="the-resulting-packer-file-and-the-test-run">The resulting Packer file and the test run</h1>
-
 <p>Alright, all together this will look like this:</p>
-
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -221,11 +194,8 @@
 }</code></pre></td></tr></table>
 </div>
 </div>
-
 <p>The builder is setup with our keys for us to connect. The tool then downloads the IP of the server, and we use that with Inspec to connect to the host. It should look something like this when it runs:</p>
-
-<p><img src="/images/cloud-build.gif" alt="Demo of the build" /></p>
-
+<p><img src="/images/cloud-build.gif" alt="Demo of the build"></p>
 <p><a href="https://github.com/baens/code-examples-blog.baens.net/tree/packer-gcp-ssh-key">All source code can be found on github if you want to run this yourself.</a></p>
 
   </section>
@@ -325,7 +295,7 @@
           
         
         &nbsp;&bull;&nbsp;
-        2019
+        2020
 
         
           &nbsp;&bull;&nbsp;

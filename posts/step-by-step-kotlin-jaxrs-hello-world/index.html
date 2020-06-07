@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  <meta name="generator" content="Hugo 0.72.0" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   
   
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
@@ -63,26 +63,17 @@
   </header>
   
   <section id="js-article" class="p-article__body">
-    
-
-<p>Hello Again and welcome to another blog post in my ongoing series on step-by-step tutorials. This one will actually build atop the last <a href="https://blog.baens.net/posts/step-by-step-kotlin/">Hello Kotlin</a> one and make a <a href="https://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services">JAX-RS</a> web service. This particular implementation of JAX-RS will be <a href="https://jersey.github.io/">Jersey</a>. Jersey is actually the reference implementation from Oracle, but there are a few out there that I&rsquo;ve honestly haven&rsquo;t given enough time.</p>
-
+    <p>Hello Again and welcome to another blog post in my ongoing series on step-by-step tutorials. This one will actually build atop the last <a href="https://blog.baens.net/posts/step-by-step-kotlin/">Hello Kotlin</a> one and make a <a href="https://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services">JAX-RS</a> web service. This particular implementation of JAX-RS will be <a href="https://jersey.github.io/">Jersey</a>. Jersey is actually the reference implementation from Oracle, but there are a few out there that I&rsquo;ve honestly haven&rsquo;t given enough time.</p>
 <p>The code repository of everything is located on <a href="https://github.com/baens/blog-step-by-step-jaxrs">github</a> for you to follow along.</p>
-
-<h2 id="step-0-prerequisites-https-github-com-baens-blog-step-by-step-jaxrs-commit-830399adbaf4da38e03146b93cf4cfa58a03929e"><a href="https://github.com/baens/blog-step-by-step-jaxrs/commit/830399adbaf4da38e03146b93cf4cfa58a03929e">Step 0: Prerequisites</a></h2>
-
+<h2 id="step-0-prerequisiteshttpsgithubcombaensblog-step-by-step-jaxrscommit830399adbaf4da38e03146b93cf4cfa58a03929e"><a href="https://github.com/baens/blog-step-by-step-jaxrs/commit/830399adbaf4da38e03146b93cf4cfa58a03929e">Step 0: Prerequisites</a></h2>
 <p>For this one, I am going to start off with my Kotlin Hello World repository. This already has a Gradle wrapper setup, along with some basic things. I&rsquo;ve changed <code>mainClassName</code>  to <code>Server.kt</code> and <code>archivesBaseName</code> to match this projects name.</p>
-
-<h2 id="step-1-web-server-https-github-com-baens-blog-step-by-step-jaxrs-commit-cb1373152bf52d7cdf5aa08489bafc327cf7912e"><a href="https://github.com/baens/blog-step-by-step-jaxrs/commit/cb1373152bf52d7cdf5aa08489bafc327cf7912e">Step 1: Web Server</a></h2>
-
+<h2 id="step-1-web-serverhttpsgithubcombaensblog-step-by-step-jaxrscommitcb1373152bf52d7cdf5aa08489bafc327cf7912e"><a href="https://github.com/baens/blog-step-by-step-jaxrs/commit/cb1373152bf52d7cdf5aa08489bafc327cf7912e">Step 1: Web Server</a></h2>
 <p>First step will be to get a working web server up and running. This project will be using the grizzly web server, which I recommend, as the embedded web server. It has a decent enough history of performance and from my usage it does a decent job.</p>
-
 <p>So let&rsquo;s take a look at how a quick server can be setup so we can verify we have the HTTP pipeline correct.</p>
-
 <p><strong>src/Server.kt</strong>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -142,21 +133,15 @@
 }</code></pre></td></tr></table>
 </div>
 </div></p>
-
 <p><strong>Line 6</strong>: This creates a URI for the server to bind to. This particular one makes it so <code>http://localhost:8080</code> will work. Probably overkill but that is what the Grizzly Server factory wants.</p>
-
 <p><strong>Line 9</strong>: This creates the Grizzly Server and the 2nd parameter (<code>true</code>) makes the server start immediately.</p>
-
 <p><strong>Lines 14 - 27</strong>: Now, let me explain this because this is sort of magic. When running under Gradle (<code>./gradlew run</code>), Gradle captures all of the input and passes it along to the application. So for example, on the command line you usually stop applications by hitting <code>Ctrl+C</code>. This however doesn&rsquo;t work when you run it under Gradle because Gradle captures the signal and stops the daemon that is running the application. Sometimes, the Gradle daemon doesn&rsquo;t stop properly, or clean everything up and produces a mess the next go around.</p>
-
 <p>So my hack to fix all of this was to have a feature flag in an environment variable. When running under Gradle (hold on one sec and I&rsquo;ll show you how) we will just wait for input. When running under everything else (i.e. docker, <code>java -jar</code>) we will wait for Ctrl+C or a kill signal from somewhere else.</p>
-
 <p>Now for the toolchain bits, we need to add the dependencies and setup the run bits to work with out shutdown hooks.</p>
-
 <p><strong>build.gradle (only parts)</strong>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -182,17 +167,13 @@ dependencies <span style="color:#f92672">{</span>
 <span style="color:#f92672">}</span></code></pre></td></tr></table>
 </div>
 </div></p>
-
 <p><strong>Line 4</strong>: We add the grizzly http server and Jersey container.</p>
-
 <p><strong>Line 8 - 11</strong>: This is how we make <code>./gradlew run</code> work. The <code>standardInput</code> we set to the normal <code>System.in</code> (it defaults to an empty set which breaks things). Then we setup the environment variables with the <code>environment</code> configuration.</p>
-
 <p>We need to add a way for the port to be exposed by Docker to the outside world. Since we are binding on port 8080 we need to have that exposed as well. So in the <code>Dockerfile</code> we will add one little line before the CMD statement.</p>
-
 <p><strong>Dockerfile (only parts)</strong>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle"><span style="display:block;width:100%;background-color:#3c3d38"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="display:block;width:100%;background-color:#3c3d38"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
 </span></span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
 </span></code></pre></td>
@@ -202,25 +183,17 @@ dependencies <span style="color:#f92672">{</span>
 CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#34;</span><span style="color:#f92672">,</span><span style="color:#e6db74">&#34;-jar&#34;</span><span style="color:#f92672">,</span><span style="color:#e6db74">&#34;run.jar&#34;</span><span style="color:#f92672">]</span></code></pre></td></tr></table>
 </div>
 </div></p>
-
 <p>So verify the two ways to run the application and view <code>http://localhost:8080</code>.</p>
-
 <p>First run <code>./gradlew run</code> and if you hit any key, it will shutdown.</p>
-
 <p>Second run the docker command <code>docker build -t myserver . &amp;&amp; docker run -p 8080:8080 myserver</code>. This you can run and then hit <em>Ctrl+C</em> to shut it down.</p>
-
 <p>Quick aside on the docker command: there are two parts to it, first you build the image you want to run, then you run it. The <code>-t</code> you pass in the build command is a tag that makes it easier to look up later. In the run part the <code>-p</code> is the ports we will bind to the host. For this example we are taking the containers&rsquo;s 8080 port mapping it to the hosts 8080 port.</p>
-
-<h2 id="step-2-add-simple-jax-rs-endpoint-that-prints-hello-world-https-github-com-baens-blog-step-by-step-jaxrs-commit-c281332c897fa4bb0de573d447ab3c6adebd5ee1"><a href="https://github.com/baens/blog-step-by-step-jaxrs/commit/c281332c897fa4bb0de573d447ab3c6adebd5ee1">Step 2: Add Simple JAX-RS endpoint that prints &ldquo;Hello World&rdquo;</a></h2>
-
+<h2 id="step-2-add-simple-jax-rs-endpoint-that-prints-hello-worldhttpsgithubcombaensblog-step-by-step-jaxrscommitc281332c897fa4bb0de573d447ab3c6adebd5ee1"><a href="https://github.com/baens/blog-step-by-step-jaxrs/commit/c281332c897fa4bb0de573d447ab3c6adebd5ee1">Step 2: Add Simple JAX-RS endpoint that prints &ldquo;Hello World&rdquo;</a></h2>
 <p>For this let&rsquo;s create the needed pipeline to get the needed resources. There is a little bit of yak shaving needed for this setup to get all of the right pieces in the place but I think I&rsquo;ve boiled it down to the simple parts.</p>
-
 <p>First let&rsquo;s see what the resource (these are what the groups of end points are called) look like for our first end point.</p>
-
 <p><strong>src/jaxrs/resources/HelloWorld.kt</strong>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -244,14 +217,11 @@ CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#3
 }</code></pre></td></tr></table>
 </div>
 </div></p>
-
 <p>There really isn&rsquo;t much to talk about here. The <code>@Path</code> is where the end point will be (so in this case <code>/helloWorld</code>). This will be retrieved from a HTTP GET.</p>
-
 <p>Alright, the next step is to get the system setup to register these resources automatically. So let&rsquo;s setup the config needed for that.</p>
-
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -273,15 +243,12 @@ CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#3
 }</code></pre></td></tr></table>
 </div>
 </div>
-
 <p>Again, this is fairly straight forward. The <a href="https://jersey.github.io/apidocs/latest/jersey/org/glassfish/jersey/server/ResourceConfig.html">ResourceConfig</a> is where all of base application is setup. In this example. we scan the <code>jaxrs.resources</code> namespace for any resources or other things that can register with JAX-RS. This is a specific to Jersey but it makes it easier to setup things.</p>
-
 <p>Alright, now that we have all of the configuration setup for JAX-RS and a resource, lets make the server recognize it. So to the <code>Server.kt</code> file added this.</p>
-
 <p><strong>Server.kt (parts)</strong>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
 </span><span style="display:block;width:100%;background-color:#3c3d38"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
 </span></span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
@@ -295,15 +262,12 @@ CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#3
     )</code></pre></td></tr></table>
 </div>
 </div></p>
-
 <p><strong>Line 12</strong>: This is all you need to add. A new instance of the <code>Application</code> class and the Grizzly server does all the rest for you.</p>
-
 <p>Now, one last thing, we need to add a dependency for Jersey. This one will make all of the magical dependency injection happen behind the scenes. The Jersey team have made this configurable dependency, so if you want a different type of injection system you can. The specific one implementation we will use is <a href="https://javaee.github.io/hk2/">HK2</a> as opposed to <a href="https://github.com/google/guice">Guice</a> or others. This was just the default that I&rsquo;ve used and have had no problems with it so I recommend it. So here is the line that needs to be added.</p>
-
 <p><strong>build.gradle (parts)</strong>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
 </span><span style="display:block;width:100%;background-color:#3c3d38"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
@@ -317,19 +281,14 @@ CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#3
 </span><span style="color:#f92672">}</span></code></pre></td></tr></table>
 </div>
 </div></p>
-
 <p>Go ahead and run to see the output on <code>http://localhost:8080/helloWorld</code>.</p>
-
-<h2 id="step-3-add-json-handling-https-github-com-baens-blog-step-by-step-jaxrs-commit-173f0916dbea62ca4f5ed982bf7bdaf062af58fb"><a href="https://github.com/baens/blog-step-by-step-jaxrs/commit/173f0916dbea62ca4f5ed982bf7bdaf062af58fb">Step 3: Add JSON handling</a></h2>
-
+<h2 id="step-3-add-json-handlinghttpsgithubcombaensblog-step-by-step-jaxrscommit173f0916dbea62ca4f5ed982bf7bdaf062af58fb"><a href="https://github.com/baens/blog-step-by-step-jaxrs/commit/173f0916dbea62ca4f5ed982bf7bdaf062af58fb">Step 3: Add JSON handling</a></h2>
 <p>Now that we have a simple web server up, let&rsquo;s get JSON handling. This isn&rsquo;t configured out of the box but it is straight forward. So let&rsquo;s get it setup and working and have an end point setup to demonstrate that.</p>
-
 <p>Let&rsquo;s setup our resource to have the parts needed to show JSON output.</p>
-
 <p><strong>src/jaxrs/resources/HelloWorld.kt</strong>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
@@ -351,17 +310,13 @@ CMD <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;java&#3
 <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">helloJson</span>() = HelloJson(<span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#34;test&#34;</span>)</code></pre></td></tr></table>
 </div>
 </div></p>
-
 <p><strong>Line 13</strong>: This is why I love Kotlin, this is a data class. A  beautifully pure and simple structure to pass data around. We have two properties that will be exposed to the JSON interface. One an integer, the next a string.</p>
-
 <p><strong>Lines 15-18</strong>: This is how you setup an endpoint that will produce a JSON object (well, force it too, but that&rsquo;s for another day, or go read the <a href="https://jersey.github.io/documentation/latest/jaxrs-resources.html">Jersey documentation</a>). We simply just return an instance of the <code>HelloJson</code> data class.</p>
-
 <p>Now, we need to tweak our dependencies and add the JSON handling. While we do this, we will also be violating the <a href="https://en.wikipedia.org/wiki/Rule_of_three_(computer_programming)">Rule of 3</a>, and we are going to refactor out the common things that may change. Let&rsquo;s see the result and we will talk about what exactly that means.</p>
-
 <p><strong>build.gradle (parts)</strong>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
@@ -381,25 +336,17 @@ dependencies <span style="color:#f92672">{</span>
 <span style="color:#f92672">}</span></code></pre></td></tr></table>
 </div>
 </div></p>
-
 <p><strong>Line 22</strong>: We added this line because the parts that could change between all of these jersey dependencies is the Jersey version. So let&rsquo;s do the work now to make it so we can make the version change in one place. A small application of the Rule of 3, but hey, it works.</p>
-
 <p><strong>Line 28</strong>: This is adding <a href="https://github.com/FasterXML/jackson">Jackson</a> to do our JSON processing. This is the magic dependency that we will need to make this all work.</p>
-
 <p>At this point you can now run it and hit <code>http://localhost:8080/helloWorld/json</code> and you should see JSON output.</p>
-
 <p>And with that, you should now have the basics to be dangerous with. You can setup a HTTP REST server and go to town with what ever you need. But hey, let me throw in one more little bonus step that may help you out.</p>
-
-<h2 id="bonus-step-4-add-verbose-logging-https-github-com-baens-blog-step-by-step-jaxrs-commit-7c753f0d1ee6d474a2801a805a20fa7fa4db98e6"><a href="https://github.com/baens/blog-step-by-step-jaxrs/commit/7c753f0d1ee6d474a2801a805a20fa7fa4db98e6">Bonus Step 4: Add verbose logging</a></h2>
-
+<h2 id="bonus-step-4-add-verbose-logginghttpsgithubcombaensblog-step-by-step-jaxrscommit7c753f0d1ee6d474a2801a805a20fa7fa4db98e6"><a href="https://github.com/baens/blog-step-by-step-jaxrs/commit/7c753f0d1ee6d474a2801a805a20fa7fa4db98e6">Bonus Step 4: Add verbose logging</a></h2>
 <p>Just to make it easier to see requests coming in and out of your service on the command line. Which can help with proving you are either insane or sane depending on the circumstances, let&rsquo;s add a logger that will output each request.</p>
-
 <p>Thankfully this fairly straight forward. We just need to tweak the <code>Application.kt</code> setup. So here is what you need.</p>
-
 <p><strong>src/jaxrs/Application.kt</strong>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
@@ -413,7 +360,6 @@ dependencies <span style="color:#f92672">{</span>
 )</code></pre></td></tr></table>
 </div>
 </div></p>
-
 <p>These are the lines you need to add to the <code>init</code> block. Fairly straight forward (make sure to add all of the right <code>import</code> statements!). This should now display all of the requests and responses on the command line so you can verify things are going in and out as expected.</p>
 
   </section>
@@ -513,7 +459,7 @@ dependencies <span style="color:#f92672">{</span>
           
         
         &nbsp;&bull;&nbsp;
-        2019
+        2020
 
         
           &nbsp;&bull;&nbsp;

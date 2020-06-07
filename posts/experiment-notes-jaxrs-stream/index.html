@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  <meta name="generator" content="Hugo 0.72.0" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   
   
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
@@ -64,24 +64,19 @@
   
   <section id="js-article" class="p-article__body">
     <p>So, this idea is a slight continuation on from my notes of how to get a <a href="https://blog.baens.net/posts/experiment-notes-simpleflatmapper/">stream out of JDBC</a> using the Simpleflatmapper library.</p>
-
 <p>The goal here is to make it so I can send a stream of objects out with JAX-RS (<a href="https://jersey.github.io/">Jersey</a>). This makes it possible to have lazy evaluation of a stream of data from a database that gets pushed up to the browser as soon as it comes off the database.</p>
-
 <p>I am going to use my <a href="https://blog.baens.net/posts/step-by-step-kotlin-jaxrs-hello-world/">starter JAX-RS project</a> as my start point and I&rsquo;ll show where I&rsquo;ve changed things. There is also the <a href="https://github.com/baens/experiment-jaxrs-stream">full repository</a> to look at to see what everything looks like in the end.</p>
-
 <p>So without further ado, let&rsquo;s first create the resource that will have an end point that streams out a list of numbers.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin">@Path(<span style="color:#e6db74">&#34;stream&#34;</span>)
 <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">StreamResource</span> {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">stream</span>() = Stream.of(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span> ,<span style="color:#ae81ff">5</span>)
-}</code></pre></div>
-<p>If we run this, we get this kind of output:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{<span style="color:#f92672">&#34;parallel&#34;</span>:<span style="color:#66d9ef">false</span>}</code></pre></div>
-<p>Well that isn&rsquo;t right! It looks like the Stream is just getting passed back and parsed as the object. The data itself isn&rsquo;t being iterated on.</p>
-
+}
+</code></pre></div><p>If we run this, we get this kind of output:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{<span style="color:#f92672">&#34;parallel&#34;</span>:<span style="color:#66d9ef">false</span>}
+</code></pre></div><p>Well that isn&rsquo;t right! It looks like the Stream is just getting passed back and parsed as the object. The data itself isn&rsquo;t being iterated on.</p>
 <p>To fix this, we need to create a <a href="https://jersey.github.io/documentation/latest/message-body-workers.html#d0e6550">new body writer</a>. This is how JAX-RS knows how to translate things into what ever media output it needs. For our purposes we are going to make a Stream to JSON body writer.</p>
-
 <p>Here is what that looks like:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin">@Provider
 <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">StreamMessageBodyWriter</span> : MessageBodyWriter&lt;Stream&lt;Any&gt;&gt; {
@@ -113,13 +108,11 @@
         generator.writeEndArray()
         generator.close()
     }
-}</code></pre></div>
-<p>This body writer matches on when the media type is JSON. Then for the writing part, we are using the Jackson object mapper to product a stream of JSON formatted data. We iterate through the stream, writing out the JSON representation of that object to the output stream, and that&rsquo;s it! Sounds more complicated than it really is, but that is it in a nut shell.</p>
-
+}
+</code></pre></div><p>This body writer matches on when the media type is JSON. Then for the writing part, we are using the Jackson object mapper to product a stream of JSON formatted data. We iterate through the stream, writing out the JSON representation of that object to the output stream, and that&rsquo;s it! Sounds more complicated than it really is, but that is it in a nut shell.</p>
 <p>So when we run with this, we will get this as output:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">3</span>,<span style="color:#ae81ff">4</span>,<span style="color:#ae81ff">5</span>]</code></pre></div>
-<p>There we go, much better.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">3</span>,<span style="color:#ae81ff">4</span>,<span style="color:#ae81ff">5</span>]
+</code></pre></div><p>There we go, much better.</p>
 <p>Now, while this looks good, we also have to make sure that we do the right thing. And by right thing, I mean taking care of the trash. The trash I&rsquo;m thinking about are the bits that are left over from a JDBC session. So, how would this look like in this context. Well, as it turns out rather easy. Here look:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">writeTo</span>(stream: Stream&lt;Any&gt;,
                          type: Class&lt;*&gt;,
@@ -143,24 +136,21 @@
 
     generator.writeEndArray()
     generator.close()
-}</code></pre></div>
-<p>That <code>use</code> statement is our signal to the stream of where we want the end to be considered. It will execute that block, and once it is exited, it will run the clean up operations. And when I say clean up operations this is how it would look like on the other side of the stream:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">stream</span>() = Stream.of(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span> ,<span style="color:#ae81ff">5</span>).onClose { println(<span style="color:#e6db74">&#34;Closing&#34;</span>) }</code></pre></div>
-<p>Easy! We can run what ever cleanup operations from there that we need and life will be awesome.</p>
-
+}
+</code></pre></div><p>That <code>use</code> statement is our signal to the stream of where we want the end to be considered. It will execute that block, and once it is exited, it will run the clean up operations. And when I say clean up operations this is how it would look like on the other side of the stream:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">stream</span>() = Stream.of(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span> ,<span style="color:#ae81ff">5</span>).onClose { println(<span style="color:#e6db74">&#34;Closing&#34;</span>) }
+</code></pre></div><p>Easy! We can run what ever cleanup operations from there that we need and life will be awesome.</p>
 <p>Now, this has me thinking. This is definitely the happy path, what happens if there are exceptions or such? No idea what kind of exceptions could occur, but there are probably some in the JDBC pipeline that we could easily think up of. So lets try and solve this by saying, if there is an exception, we will try and &ldquo;recover&rdquo; in that we will send what we have, clean up everything and act like that is the end of the stream. So if we had intended to send 10 items, but item 4 bombs out, we should hopefully have the first 3 already sent along.</p>
-
 <p>So let&rsquo;s try and reconstruct that and see what happens. First, lets try and make that same stream of 10 but controlling the loops this time. A method for that would look like this in Kotlin:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">controlledSequence</span>() = buildSequence {
     <span style="color:#66d9ef">for</span> (i <span style="color:#66d9ef">in</span> <span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">5</span>) {
         yield(i)
     }
-}</code></pre></div>
-<p>Now this is some black freaking Kotlin magic. This is a <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.coroutines.experimental/build-sequence.html"><code>buildSequence</code></a> which is a coroutine built into the Kotlin library. But in lay terms, its a way to make a lazy evaluating list of items. As you can see the <code>yield</code> statement, which should be familiar to you if you are from C# or python. Silly that you have to do a special block, but hey its the JVM, you just need to be verbose at times.</p>
-
+}
+</code></pre></div><p>Now this is some black freaking Kotlin magic. This is a <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.coroutines.experimental/build-sequence.html"><code>buildSequence</code></a> which is a coroutine built into the Kotlin library. But in lay terms, its a way to make a lazy evaluating list of items. As you can see the <code>yield</code> statement, which should be familiar to you if you are from C# or python. Silly that you have to do a special block, but hey its the JVM, you just need to be verbose at times.</p>
 <p>Ok let&rsquo;s wire this up to that stream method and double check our output:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">stream</span>() = controlledSequence().asStream()</code></pre></div>
-<p>Easy, neat. That will give us the same output as before. Now let&rsquo;s insert an exception when the number is 4. This would look like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">stream</span>() = controlledSequence().asStream()
+</code></pre></div><p>Easy, neat. That will give us the same output as before. Now let&rsquo;s insert an exception when the number is 4. This would look like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">controlledSequence</span>() = buildSequence {
     <span style="color:#66d9ef">for</span> (i <span style="color:#66d9ef">in</span> <span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">5</span>) {
         <span style="color:#66d9ef">if</span> (i == <span style="color:#ae81ff">4</span>) {
@@ -169,8 +159,8 @@
         
         yield(i)
     }
-}</code></pre></div>
-<p>If we run this, we will see a message about <code>Request failed.</code> That is a good thing and a bad thing. Good thing is that our stream bubbles up an exception, bad thing is that it doesn&rsquo;t handle it&hellip;.yet. So let&rsquo;s do that. Let&rsquo;s handle the exception in a way that the stream can continue on and close out instead of completely bombing. Let&rsquo;s try and wrap the stream block in a <code>try...catch</code> block and see what happens. So something like this in the <code>StreamMessageBodyWriter</code>:</p>
+}
+</code></pre></div><p>If we run this, we will see a message about <code>Request failed.</code> That is a good thing and a bad thing. Good thing is that our stream bubbles up an exception, bad thing is that it doesn&rsquo;t handle it&hellip;.yet. So let&rsquo;s do that. Let&rsquo;s handle the exception in a way that the stream can continue on and close out instead of completely bombing. Let&rsquo;s try and wrap the stream block in a <code>try...catch</code> block and see what happens. So something like this in the <code>StreamMessageBodyWriter</code>:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">writeTo</span>(stream: Stream&lt;Any&gt;,
                          type: Class&lt;*&gt;,
                          genericType: Type,
@@ -195,11 +185,10 @@
 
         generator.writeEndArray()
         generator.close()
-    }</code></pre></div>
-<p>Now if we run this we should see this kind of output:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">3</span>]</code></pre></div>
-<p>Excellent, that works! Now we have some guards against this going completely hay-wired and the stream can give us everything that has come before it.</p>
-
+    }
+</code></pre></div><p>Now if we run this we should see this kind of output:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">[<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">3</span>]
+</code></pre></div><p>Excellent, that works! Now we have some guards against this going completely hay-wired and the stream can give us everything that has come before it.</p>
 <p>Well, I&rsquo;m happy with this solution. It does require some extra code to make work (the makings of a library even!), but it gives us full control of what we are doing. We can now have a stream come out of our resources, the stream can clean up any resources it is associated with, and we can handle exceptions inside the stream and recover from them. Not too shabby.</p>
 
   </section>
@@ -299,7 +288,7 @@
           
         
         &nbsp;&bull;&nbsp;
-        2019
+        2020
 
         
           &nbsp;&bull;&nbsp;

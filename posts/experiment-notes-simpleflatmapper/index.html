@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  <meta name="generator" content="Hugo 0.72.0" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   
   
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
@@ -64,15 +64,12 @@
   
   <section id="js-article" class="p-article__body">
     <p>When I was a C# developer, I adored the different Micro-ORMs that were available. <a href="https://github.com/FransBouma/Massive">Massive</a> was one of the first ones I heard about and used. The idea that I could just write straight SQL and get objects out without any other configuration I loved. When I got back into the JVM world, I always wondered if there were such a thing out there.</p>
-
 <p>Well I&rsquo;ve finally found a decent one. The library is called <a href="http://simpleflatmapper.org/">Simpleflatmapper</a>. With no XML configuration file, I can get from SQL to object with out any problem. This is amazing!</p>
-
 <p>Let&rsquo;s see some code. In these examples I will be using Kotlin as the JVM language, but this should work with Java as well. <a href="https://github.com/baens/experiment-kotlin-simpleflatmapper">There is a code repository for this as well</a>.</p>
-
 <p>In the examples I have a postgres database running with the following table setup</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> test(id int <span style="color:#66d9ef">GENERATED</span> <span style="color:#66d9ef">BY</span> <span style="color:#66d9ef">DEFAULT</span> <span style="color:#66d9ef">AS</span> <span style="color:#66d9ef">IDENTITY</span> <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span>, <span style="color:#66d9ef">data</span> text);
-<span style="color:#66d9ef">INSERT</span> <span style="color:#66d9ef">INTO</span> test(<span style="color:#66d9ef">data</span>) <span style="color:#66d9ef">VALUES</span>(<span style="color:#e6db74">&#39;1&#39;</span>),(<span style="color:#e6db74">&#39;2&#39;</span>),(<span style="color:#e6db74">&#39;3&#39;</span>),(<span style="color:#e6db74">&#39;4&#39;</span>);</code></pre></div>
-<p>So here is my first shot just trying to iterate over those</p>
+<span style="color:#66d9ef">INSERT</span> <span style="color:#66d9ef">INTO</span> test(<span style="color:#66d9ef">data</span>) <span style="color:#66d9ef">VALUES</span>(<span style="color:#e6db74">&#39;1&#39;</span>),(<span style="color:#e6db74">&#39;2&#39;</span>),(<span style="color:#e6db74">&#39;3&#39;</span>),(<span style="color:#e6db74">&#39;4&#39;</span>);
+</code></pre></div><p>So here is my first shot just trying to iterate over those</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">import</span> org.simpleflatmapper.jdbc.JdbcMapperFactory
 <span style="color:#66d9ef">import</span> java.util.stream.Stream
 
@@ -100,23 +97,17 @@
     <span style="color:#66d9ef">val</span> statement = connection.prepareStatement(<span style="color:#e6db74">&#34;SELECT id, data FROM test&#34;</span>)
     <span style="color:#66d9ef">val</span> resultSet = statement.executeQuery()
     <span style="color:#66d9ef">return</span> mapper.stream(resultSet)
-}</code></pre></div>
-<p>If you ran this you could see the following:</p>
-
+}
+</code></pre></div><p>If you ran this you could see the following:</p>
 <pre><code>DataRow(id=1, data=1)
 DataRow(id=2, data=2)
 DataRow(id=3, data=3)
 DataRow(id=4, data=4)
-</code></pre>
-
-<p>Neat!</p>
-
+</code></pre><p>Neat!</p>
 <p>But of course that isn&rsquo;t everything. We need to clean up after ourselves. Database connections on the JVM have a lot of cruft that can be left over. The code above has the <code>resultSet</code>, the <code>statement</code> and the <code>connection</code> that need to be closed manually. Yes, it sucks we can&rsquo;t just have it do it all for us, but sometimes you just need to be a good janitor.</p>
-
 <p>First let&rsquo;s experiment to see how bad the problem really is. So let&rsquo;s get a base line by running this SQL on the database to see what a &ldquo;quiet&rdquo; database looks like.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">SELECT</span> query, <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) <span style="color:#66d9ef">FROM</span> pg_stat_activity <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> query;</code></pre></div>
-<p>You should get something that looks like this:</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">SELECT</span> query, <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) <span style="color:#66d9ef">FROM</span> pg_stat_activity <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> query;
+</code></pre></div><p>You should get something that looks like this:</p>
 <table>
 <thead>
 <tr>
@@ -124,7 +115,6 @@ DataRow(id=4, data=4)
 <th>count</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>SELECT query, count(*) FROM pg_stat_activity group by query</td>
@@ -132,7 +122,6 @@ DataRow(id=4, data=4)
 </tr>
 </tbody>
 </table>
-
 <p>Now let&rsquo;s modify the main loop to do the query 10 times and wait for user input so we can inspect the database.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">main</span>(args: Array&lt;String&gt;) {
     Class.forName(<span style="color:#e6db74">&#34;org.postgresql.Driver&#34;</span>)
@@ -143,9 +132,8 @@ DataRow(id=4, data=4)
 
     println(<span style="color:#e6db74">&#34;holding&#34;</span>)
     readLine()
-}</code></pre></div>
-<p>You should now see something like this</p>
-
+}
+</code></pre></div><p>You should now see something like this</p>
 <table>
 <thead>
 <tr>
@@ -153,24 +141,19 @@ DataRow(id=4, data=4)
 <th>count</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>SELECT query, count(*) FROM pg_stat_activity group by query</td>
 <td>1</td>
 </tr>
-
 <tr>
 <td>SELECT id, data FROM test</td>
 <td>10</td>
 </tr>
 </tbody>
 </table>
-
 <p>ACK! We have 10 open query sessions. That&rsquo;s not going to scale very well. And just to prove how fast it won&rsquo;t scale, instead of 10, do 100. There should be an exception stating that there are too many open connections.</p>
-
 <p>Let&rsquo;s fix this. The Java <a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html"><code>Stream</code></a> has an event for this kind of thing. The <code>Stream</code> knows when it has been closed and allows a cleanup job to run if needed. To subscribe to this we will create an <a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/BaseStream.html#onClose-java.lang.Runnable-"><code>onClose</code></a> handler.</p>
-
 <p>The code for that looks something like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getData</span>() : Stream&lt;DataRow&gt; {
     <span style="color:#66d9ef">val</span> connection = DriverManager.getConnection(<span style="color:#e6db74">&#34;jdbc:postgresql://localhost:5432/postgres&#34;</span>, <span style="color:#e6db74">&#34;postgres&#34;</span>, <span style="color:#e6db74">&#34;password&#34;</span>);
@@ -186,11 +169,9 @@ DataRow(id=4, data=4)
                     statement.close()
                     connection.close()
                  }
-}</code></pre></div>
-<p>And if we run that&hellip;.well we still have the same issue.</p>
-
+}
+</code></pre></div><p>And if we run that&hellip;.well we still have the same issue.</p>
 <p>The above code fixes the creator of the stream, but we also need to handle this kind of thing from the user side. In other words, who ever is actually using the stream needs to signal, &ldquo;Hey, I&rsquo;m done, go do your cleanup thing now&rdquo;. Again, this would be nice if this is all handled automatically, but certain things just need to be explicit, and cleanup routines are usually explicit.</p>
-
 <p>This is because a <code>Stream</code> is &ldquo;resourceful&rdquo;. I.e. it can hold on to resources that are needed as it iterates through sometimes. While it would be nice if it would just cleanup after it was done, there isn&rsquo;t really anyway for the stream itself to know when the user is done iterating through it. Now, in normal Java you have something called <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"><code>try with resource</code></a>. But in Kotlin, it&rsquo;s actually fairly straight forward with the <code>use</code> statement. For example this is how our main loop will now look:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">main</span>(args: Array&lt;String&gt;) {
     Class.forName(<span style="color:#e6db74">&#34;org.postgresql.Driver&#34;</span>)
@@ -203,11 +184,9 @@ DataRow(id=4, data=4)
 
     println(<span style="color:#e6db74">&#34;holding&#34;</span>)
     readLine()
-}</code></pre></div>
-<p>That <code>use</code> block is what is the important piece. This is how we signal to the stream of where to clean up those resources. Once that block has finished running, it will close out the stream which will fire the close signal.</p>
-
+}
+</code></pre></div><p>That <code>use</code> block is what is the important piece. This is how we signal to the stream of where to clean up those resources. Once that block has finished running, it will close out the stream which will fire the close signal.</p>
 <p>Now if you run this piece, you should get to the <code>holding</code> line. And you should see this table as the result</p>
-
 <table>
 <thead>
 <tr>
@@ -215,7 +194,6 @@ DataRow(id=4, data=4)
 <th>count</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>SELECT query, count(*) FROM pg_stat_activity group by query</td>
@@ -223,9 +201,7 @@ DataRow(id=4, data=4)
 </tr>
 </tbody>
 </table>
-
 <p>MUCH better, even after running through the loop, we have no active connections to the database.</p>
-
 <p>So there you have it. I like this setup a lot and can start using this in my projects. I&rsquo;m always a fan of these simpler ways, and especially if I can toss out on the huge libraries that ORMs are. I&rsquo;m sure they are helpful somehow, but I&rsquo;ve always get burned or stuck somewhere when I use them.</p>
 
   </section>
@@ -325,7 +301,7 @@ DataRow(id=4, data=4)
           
         
         &nbsp;&bull;&nbsp;
-        2019
+        2020
 
         
           &nbsp;&bull;&nbsp;

@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  <meta name="generator" content="Hugo 0.72.0" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   
   
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
@@ -63,20 +63,14 @@
   </header>
   
   <section id="js-article" class="p-article__body">
-    
-
-<p>Am I crazy? Yes, yes I am. For what ever reason, I love the idea of a project that I can literally move from computer to computer very few things installed and be able to be productive in that code base. By this, I mean I could install, one, maybe two tools and then I can be productive in a code base. Right now, <a href="https://www.docker.com/">Docker</a> feels like maybe I can achieve this crazy dream.</p>
-
+    <p>Am I crazy? Yes, yes I am. For what ever reason, I love the idea of a project that I can literally move from computer to computer very few things installed and be able to be productive in that code base. By this, I mean I could install, one, maybe two tools and then I can be productive in a code base. Right now, <a href="https://www.docker.com/">Docker</a> feels like maybe I can achieve this crazy dream.</p>
 <p>With this crazy idea in mind, I decided if I could fully dockerize the <a href="https://kotlinlang.org/">Kotlin</a> tool chain. In theory I can setup a workstation by installing an editor, git, docker, and bam. I&rsquo;m now 100% ready to code on this machine. Alright, with this, off we go.</p>
-
 <h1 id="step-1-getting-the-basic-build-working">Step 1: Getting the basic build working</h1>
-
 <p>Now, to make things easy, I am going to reuse my <a href="https://blog.baens.net/posts/step-by-step-kotlin/">Kotlin base</a> and recreate this project with this tool chain. First step, let&rsquo;s replace the <code>gradlew</code> file with a docker executed gradle file. It will look something like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/usr/bin/env sh
 </span><span style="color:#75715e"></span>
-docker run --rm -it -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>:/workspace -w /workspace gradle:5.0.0-jdk11 gradle $@</code></pre></div>
-<p>This is a fairly straight forward <code>docker</code> command, but just in case you have never used <code>docker</code> before let me touch on some of the basics:</p>
-
+docker run --rm -it -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>:/workspace -w /workspace gradle:5.0.0-jdk11 gradle $@
+</code></pre></div><p>This is a fairly straight forward <code>docker</code> command, but just in case you have never used <code>docker</code> before let me touch on some of the basics:</p>
 <ul>
 <li><code>docker run</code> - we are going to run a docker image</li>
 <li><code>--rm -it</code> - remove (<code>rm</code>) once completed and add standard input pipes (<a href="https://docs.docker.com/engine/reference/commandline/run/#assign-name-and-allocate-pseudo-tty---name--it"><code>it</code></a>)</li>
@@ -86,24 +80,15 @@ docker run --rm -it -v <span style="color:#66d9ef">$(</span>pwd<span style="colo
 <li><code>gradle</code> - execute the gradle command</li>
 <li><code>$@</code> - pass all arguments from the parent shell to this command</li>
 </ul>
-
 <p>Alright, let&rsquo;s test this and see what happens!</p>
-
-<video width="640" autoplay playsinline loop muted>
-    <source src="/videos/gradle-first-build.mov" type="video/mp4">
-</video>
-
+<!-- raw HTML omitted -->
 <p>Now, don&rsquo;t be too alarmed if your output is not <em><em>exactly</em></em> the same. I had already ran it so the docker download process isn&rsquo;t going, but it should be fairly close after that.</p>
-
 <p>Looks like we have some jars, let&rsquo;s get them into a container and run them!</p>
-
 <h1 id="step-2-put-into-jar-into-docker">Step 2: Put into jar into Docker</h1>
-
 <p>Now, I currently had a <code>Dockerfile</code> that built the jar, then created the docker image, I am going to continue that idea. Here is what the <code>Dockerfile</code> looks like:</p>
-
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-dockerfile" data-lang="dockerfile"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -133,34 +118,21 @@ docker run --rm -it -v <span style="color:#66d9ef">$(</span>pwd<span style="colo
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">CMD</span> [<span style="color:#e6db74">&#34;java&#34;</span>,<span style="color:#e6db74">&#34;-jar&#34;</span>,<span style="color:#e6db74">&#34;run.jar&#34;</span>]</code></pre></td></tr></table>
 </div>
 </div>
-
 <p>I&rsquo;m not going to go much into this file since I already explained it in the other blog post, but let me point out that line 3 was special and needed. The permissions were a little wonky inside of the container and I had to make sure the folder was already created correctly. There are many many work around for this, but I didn&rsquo;t want to demonstrate that.</p>
-
 <p>Let&rsquo;s build and run this now!</p>
-
-<video width="640" autoplay playsinline loop muted>
-    <source src="/videos/docker-build-and-run.mov" type="video/mp4">
-</video>
-
+<!-- raw HTML omitted -->
 <p>Excellent! It worked as expected. But dang is it slow. Let&rsquo;s try really quick and fix that.</p>
-
 <h1 id="step-3-build-time-improvements">Step 3: build time improvements</h1>
-
 <p>Ok, obviously the build loop on this is a tad bit ridiculous. Let me show you one quick improvement for build times. If you watched closely to the video, the downloading of plugins and other artifacts is by the largest amount of time spent. This should be easily fixed if we just cached those artifacts and let gradle discover them each time. The gradle tool does this natively by storing in your home directly this folder, so why don&rsquo;t we just create a folder that can live between each gradle run? Well, here&rsquo;s what the <code>gradlew</code> turns into if we want to do exactly that:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#75715e">#!/usr/bin/env sh
 </span><span style="color:#75715e"></span>
 <span style="color:#f92672">[</span> -d .build_cache <span style="color:#f92672">]</span> <span style="color:#f92672">||</span> mkdir .build_cache
-docker run --rm -it -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>:/workspace -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>/build_cache:/home/gradle/.gradle -w /workspace gradle:5.0.0-jdk11 gradle --no-daemon $@</code></pre></div>
-<p>Nothing wild. Just create the <code>build_cache</code> folder and then mount that folder inside of the docker image where it would be expected. My quick tests show we go from 30 seconds to 8 second builds. Not bad.</p>
-
+docker run --rm -it -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>:/workspace -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>/build_cache:/home/gradle/.gradle -w /workspace gradle:5.0.0-jdk11 gradle --no-daemon $@
+</code></pre></div><p>Nothing wild. Just create the <code>build_cache</code> folder and then mount that folder inside of the docker image where it would be expected. My quick tests show we go from 30 seconds to 8 second builds. Not bad.</p>
 <h1 id="step-4-profit-evaluating-if-this-is-practical">Step 4: &hellip;..Profit??&hellip;. Evaluating if this is practical</h1>
-
 <p>Well, now that we have this sort of working and are producing builds, is this really practical? Well, honestly, its pretty close. It works, you don&rsquo;t need many things installed. There are some further speed improvements you could get with some tweaks. I would use (and I sort of use a setup for some projects like this now) this setup as my own setup, but I may not push it on other devs to use it unless they wanted to. But I&rsquo;m starting to like this kind of setup. Again, there are many hiccups with this approach, but it gets pretty close.</p>
-
 <p>So, this has at least been a fun adventure of seeing if this was possible and I think it shows promise into where things may go.</p>
-
 <h1 id="special-notes">Special Notes</h1>
-
 <p>If you checkout the code, you may notice a <code>.dockerignore</code> file. This file tells docker what not to include when it is moving files over to the docker context. This is pretty important because the <code>.gradle</code> folder doesn&rsquo;t share well across the machines and things start breaking.</p>
 
   </section>
@@ -260,7 +232,7 @@ docker run --rm -it -v <span style="color:#66d9ef">$(</span>pwd<span style="colo
           
         
         &nbsp;&bull;&nbsp;
-        2019
+        2020
 
         
           &nbsp;&bull;&nbsp;

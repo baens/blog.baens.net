@@ -6,10 +6,20 @@
     <description>Recent content in Posts on Erik Lindblom&#39;s Ramblings</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 16 Nov 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 07 Jun 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://blog.baens.net/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Terraform, Google Cloud, and Kubernetes working together</title>
+      <link>https://blog.baens.net/posts/terraform-kubernetes-secret/</link>
+      <pubDate>Sun, 07 Jun 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://blog.baens.net/posts/terraform-kubernetes-secret/</guid>
+      <description>Here is the situation: I want a secret (let&amp;rsquo;s say a database password or any Kubernetes resource) stored inside a Kubernetes secret. The infrastructure is controlled by Terraform. So, how do I go about to keep those two things in sync?
+Well, recently I found out a neat pattern! You can connect Terraform with both GCP infrastructure, and Kubernetes at the same time, and you can keep them in sync! How do you say?</description>
+    </item>
     
     <item>
       <title>Step by Step: A simple Node.js, Docker, and Kubernetes setup</title>
@@ -84,7 +94,7 @@ Let&amp;rsquo;s go over quickly what tests I&amp;rsquo;ve found valuable as I&am
       <pubDate>Thu, 22 Mar 2018 00:00:00 +0000</pubDate>
       
       <guid>https://blog.baens.net/posts/experiment-notes-graphql-postgres/</guid>
-      <description>What is this GraphQL thing I have finally got time to try out GraphQL. I&amp;rsquo;ve been reading about it more and more and wanted to get a sense of how to build a data API with it. Now, if you don&amp;rsquo;t know what GraphQL is, here is my take on it. It is a way to create data APIs that allow clients to tell you what data they actually need.</description>
+      <description>What is this GraphQL thing I have finally got time to try out GraphQL. I&amp;rsquo;ve been reading about it more and more and wanted to get a sense of how to build a data API with it. Now, if you don&amp;rsquo;t know what GraphQL is, here is my take on it. It is a way to create data APIs that allow clients to tell you what data they actually need. Instead of you trying to design up front all of your use cases and force clients to use that.</description>
     </item>
     
     <item>

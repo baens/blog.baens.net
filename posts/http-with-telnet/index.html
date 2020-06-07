@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  <meta name="generator" content="Hugo 0.72.0" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   
   
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
@@ -63,34 +63,24 @@
   </header>
   
   <section id="js-article" class="p-article__body">
-    
-
-<h1 id="have-you-ever-tried-to-talk-to-a-http-server-via-telnet">Have you ever tried to talk to a HTTP server via Telnet?</h1>
-
+    <h1 id="have-you-ever-tried-to-talk-to-a-http-server-via-telnet">Have you ever tried to talk to a HTTP server via Telnet?</h1>
 <p>As web developers, either front end or backend, we should strive to at least strive to have a understanding of the technologies we build our success on. And I&rsquo;ve found through out the years that a surprising number of web developers don&rsquo;t know how it works. So I thought it was fitting to start by looking at the basics of the communication mechanism we build upon and use every day, HTTP.</p>
-
 <h2 id="small-word-about-the-world-of-http-rfcs">Small word about the world of HTTP RFCs</h2>
-
 <p>Standards: that beautiful thing we all strive for as programmers. We want to know that we are doing the right thing at the right time, and people much brighter then we have paved that path already. There is a beautiful process that started very early on how exactly certain things were going to be set in stone and work over the internet. I highly recommend reading <a href="https://en.wikipedia.org/wiki/Request_for_Comments">the wikipedia page on the RFCs</a>, or even read up on the <a href="https://tools.ietf.org/html/rfc2026">spec of how to make a RFC</a>!</p>
-
 <p>If you&rsquo;ve never looked at the what makes up the HTTP standard, I encourage you to start with <a href="https://tools.ietf.org/html/rfc7231">RFC 7231</a> or it&rsquo;s parent <a href="https://tools.ietf.org/html/rfc7230">RFC 7230</a>. Yes, its long and there are a lot of pieces to it. But you may learn something about HTTP and what it can actually do.</p>
-
-<h2 id="let-s-get-our-hands-dirty">Let&rsquo;s get our hands dirty</h2>
-
+<h2 id="lets-get-our-hands-dirty">Let&rsquo;s get our hands dirty</h2>
 <p>I am going to be using <a href="https://httpbin.org">HTTPBin.org</a> in these following examples. This was one of the better, simpler services out there that I found as a good playground to work with.</p>
-
 <p>Now, lets make our first HTTP call with telnet:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">&gt; telnet httpbin.org <span style="color:#ae81ff">80</span></code></pre></div>
-<p>You should see something like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">&gt; telnet httpbin.org <span style="color:#ae81ff">80</span>
+</code></pre></div><p>You should see something like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-plain" data-lang="plain">Trying 23.23.209.130...
 Connected to httpbin.org.
-Escape character is &#39;^]&#39;.</code></pre></div>
-<p>If you are at this point, excellent! We have established a TCP connection to a server that DNS has identified as <em>httpbin.org</em> on port 80! Fairly neat right?</p>
-
+Escape character is &#39;^]&#39;.
+</code></pre></div><p>If you are at this point, excellent! We have established a TCP connection to a server that DNS has identified as <em>httpbin.org</em> on port 80! Fairly neat right?</p>
 <p>Now, lets make the actual HTTP request. Type the following then hit enter <strong>twice</strong> after:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#a6e22e">GET</span> /ip <span style="color:#66d9ef">HTTP</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1.1</span>
-Host<span style="color:#f92672">:</span> <span style="color:#ae81ff">httpbin.org</span></code></pre></div>
-<p>You will hopefully see something like this in return:</p>
+Host<span style="color:#f92672">:</span> <span style="color:#ae81ff">httpbin.org</span>
+</code></pre></div><p>You will hopefully see something like this in return:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#66d9ef">HTTP</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1.1</span> <span style="color:#ae81ff">200</span> <span style="color:#a6e22e">OK</span>
 Connection<span style="color:#f92672">:</span> <span style="color:#ae81ff">keep-alive</span>
 Server<span style="color:#f92672">:</span> <span style="color:#ae81ff">meinheld/0.6.1</span>
@@ -104,16 +94,13 @@ Via<span style="color:#f92672">:</span> <span style="color:#ae81ff">1.1 vegur</s
 
 {
   <span style="color:#f92672">&#34;origin&#34;</span>: <span style="color:#e6db74">&#34;&lt;ip&gt;&#34;</span>
-}</code></pre></div>
-<p>If you have the above, congratulations! You have now successfully done what browsers do all day, by hand! Hopefully that is exciting, and if you&rsquo;ve never had a clue, at least eye openning.</p>
-
+}
+</code></pre></div><p>If you have the above, congratulations! You have now successfully done what browsers do all day, by hand! Hopefully that is exciting, and if you&rsquo;ve never had a clue, at least eye openning.</p>
 <p>So, what in the hell have we just done. Let&rsquo;s first go over the first part which is the request.</p>
-
 <h2 id="the-request">The Request</h2>
-
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
@@ -121,20 +108,14 @@ Via<span style="color:#f92672">:</span> <span style="color:#ae81ff">1.1 vegur</s
 Host<span style="color:#f92672">:</span> <span style="color:#ae81ff">httpbin.org</span></code></pre></td></tr></table>
 </div>
 </div>
-
 <p>This is a HTTP request. After we&rsquo;ve established a connection to port 80 on a server, we can send plain text of our request to a server. That very first line is called the <code>start-line</code> of the HTTP request and is defined in <a href="https://tools.ietf.org/html/rfc7230#section-3.1.1">RFC 7230 Section 3.1.1</a>. What it basically says that you get the following:</p>
-
 <p><code>&lt;HTTP Method (i.e. GET, POST, PUT)&gt; &lt;URI&gt; HTTP/1.1</code></p>
-
 <p>So in our example <code>GET</code> is the method. Our URI is <code>/ip</code>. The HTTP version is <code>1.1</code>. Fairly straight forward.</p>
-
 <p>The next lines are defined as the request header. Which can be 0 or more depending on what you are doing. The header we sent in the above example is only 1 line which is <code>Host: httpbin.org</code>. To put it simply, this says please send to host named <code>httpbin.org</code>. This is because multiple servers could be hosted at that IP and this is what routes us to the right server. Again, that is glossing over the details greatly, but that is why we included it in our example. If we had not included the host header, this particular server returns with an error.</p>
-
 <h2 id="the-response">The Response</h2>
-
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -166,25 +147,15 @@ Via<span style="color:#f92672">:</span> <span style="color:#ae81ff">1.1 vegur</s
 }</code></pre></td></tr></table>
 </div>
 </div>
-
 <p>There are 3 major parts to a response (and if you want to follow the spec <a href="https://tools.ietf.org/html/rfc7230#section-3">Section 3 of RFC 7230</a>) The <em>start-line</em>, the <em>headers</em> then the <em>body</em>. If you&rsquo;ve been following along this may seem highly similar to a request, and you would be right. A request and a response are nearly the same thing.</p>
-
 <p>In a response, the <em>start-line</em> is actually the <em>status-line</em>. This has information about what exactly the server has done with the request in a numerical and a textual representation. So in the example above <code>Line 1</code> shows <code>200 OK</code>. The <strong>200</strong> is the numerical status and <strong>OK</strong> is the text repesentation. A table of the commonly used ones are in <a href="https://tools.ietf.org/html/rfc7231#section-6">RFC 7231 Section 6</a>.</p>
-
 <p>The <em>headers</em> are lines 2 - 10, and are used as meta information about the response. All kinds of information can be passed in through here. We have an example of <a href="https://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS</a> information on line 5 - 6, <a href="https://en.wikipedia.org/wiki/Media_type">Media Type</a> information on line 4, and something we will explain here in a minute line 2 has information about the connection.</p>
-
 <p>The <em>body</em> follows the header. One important thing to note is that you should see a blank line like on line 11. This separates the header from the body. In this case the body is a JSON object that represents information about the IP we were requesting from.</p>
-
 <h2 id="connection-keep-alive">Connection: Keep-alive</h2>
-
 <p>Now, you may have noticed if you ran the previous example that your telnet session didn&rsquo;t close and just stayed openned to a blank line. This is because by default a HTTP/1.1 connection trys to stay open so a client could make a request again to the same serer. I&rsquo;m not going to go into too much detail on exactly what this is important, but wanted to point it out. A way to make that NOT happen is to add the following after the <code>Host</code> line:</p>
-
 <p><code>Connection: close</code></p>
-
 <p>This instructs the server that after the response is sent, to close the connection.  If you add that line, you should receive a message saying something like <code>Connection closed by foreign host.</code></p>
-
 <h2 id="a-post">A POST</h2>
-
 <p>Now that we&rsquo;ve established the basics, lets try to another HTTP method, POST. A POST message is basically a GET message, but with a body in the request. As we established, a request and a response are made up of the same parts, they just begin in a different way. A POST demonstrates that because we are going to have a body now in the request. So, start up the telnet session again, connect to the server and type the following:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#a6e22e">POST</span> /post <span style="color:#66d9ef">HTTP</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1.1</span>
 Host<span style="color:#f92672">:</span> <span style="color:#ae81ff">httpbin.org</span>
@@ -192,12 +163,11 @@ Connection<span style="color:#f92672">:</span> <span style="color:#ae81ff">close
 Content-type<span style="color:#f92672">:</span> <span style="color:#ae81ff">application/json</span>
 Content-length<span style="color:#f92672">:</span> <span style="color:#ae81ff">14</span>
 
-{<span style="color:#f92672">&#34;test&#34;</span>:<span style="color:#66d9ef">true</span>}</code></pre></div>
-<p>Now if all goes well hopefully you got something like this back in return:</p>
-
+{<span style="color:#f92672">&#34;test&#34;</span>:<span style="color:#66d9ef">true</span>}
+</code></pre></div><p>Now if all goes well hopefully you got something like this back in return:</p>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -255,15 +225,10 @@ Via<span style="color:#f92672">:</span> <span style="color:#ae81ff">1.1 vegur</s
 }</code></pre></td></tr></table>
 </div>
 </div>
-
 <p>If it didn&rsquo;t go well lets try and explain why that may have not gone well. First, as you may have noticed there are a fair bit more pieces to a POST. And with telnet, there are a lot of ways to screw this up. Telnet sends the content to the server as soon as you hit enter, so the server will try and process the information as soon as you do that. For this reason you have to be more careful about how you send it to the server over what code would have to worry about. The <strong>Content-length</strong> header is very, very important. If you even have extra whitespace or newline characters, it won&rsquo;t work and you may get 5xx errors or other problems. If you notice on line 14 of the output, you will see an extra return character (I ran this example on a mac). So, if you have issues, try again and make sure to type EXACTLY the same thing. Or fiddle with content-length. If all else fails, try Postman or another HTTP tool and see what it sends over.</p>
-
 <p>Some other highlights from this are to note that on line 14 you can see exactly what was sent to the server, extra character and all. Along with all of the headers and other information. It even parsed the JSON information we passed to it because we set the <code>Content-type</code> to <code>application/json</code>.</p>
-
 <p>And this is it, a POST request.</p>
-
 <h2 id="conclusion">Conclusion</h2>
-
 <p>Alright, I hope you enjoyed this post. Hopefully you learned a little bit, and even tried the examples. Please drop me a line or such if you have any questions or comments. Thanks for reading!</p>
 
   </section>
@@ -362,7 +327,7 @@ Via<span style="color:#f92672">:</span> <span style="color:#ae81ff">1.1 vegur</s
           
         
         &nbsp;&bull;&nbsp;
-        2019
+        2020
 
         
           &nbsp;&bull;&nbsp;

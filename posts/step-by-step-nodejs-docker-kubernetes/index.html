@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  <meta name="generator" content="Hugo 0.72.0" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   
   
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
@@ -63,28 +63,18 @@
   </header>
   
   <section id="js-article" class="p-article__body">
-    
-
-<p>I&rsquo;ve now been playing with Node.js, Docker, and Kubernetes for quite some time. And it just so happen that recently someone needed a good introduction to Node.js, Docker, and Kubernetes. However, after searching online I couldn&rsquo;t find one that just had a few simple things to walk through. So, here this is. Hopefully this blog post will demonstrate how to create a simple Node.js, create a Docker container, demonstrate it running, then deploy that Docker container to a local Kubernetes setup. There will be light touches on what exactly all of those parts are and hopefully give you a starting point to start exploring these technology stacks.</p>
-
+    <p>I&rsquo;ve now been playing with Node.js, Docker, and Kubernetes for quite some time. And it just so happen that recently someone needed a good introduction to Node.js, Docker, and Kubernetes. However, after searching online I couldn&rsquo;t find one that just had a few simple things to walk through. So, here this is. Hopefully this blog post will demonstrate how to create a simple Node.js, create a Docker container, demonstrate it running, then deploy that Docker container to a local Kubernetes setup. There will be light touches on what exactly all of those parts are and hopefully give you a starting point to start exploring these technology stacks.</p>
 <h1 id="step-0-prerequisites">Step 0: Prerequisites</h1>
-
 <p>I am going to assume a few things in this blog post. First, you have <a href="https://nodejs.org/">Node.js</a> installed. I prefer to use <a href="https://github.com/nvm-sh/nvm">nvm</a> as my manager of my node instance, but there are several out there that can do the trick. For this blog post, I will be using the latest LTS Dubnium release 10.16.3. I will also be using <a href="https://yarnpkg.com/">yarn</a> as the Node.js package manager.</p>
-
 <p>Next, we will need <a href="https://www.docker.com/">Docker</a> installed. If you are using Mac or Windows, go ahead and get the wonderful <a href="https://www.docker.com/products/docker-desktop">Docker for Mac/Windows</a> tools. This will give you a wonderful set of tools to use Docker on those platforms. For Linux, go aheads and get a <a href="https://docs.docker.com/v17.12/install/#server">Docker CE</a> from what ever distro package you have. For this blog post, I will be running Docker for Mac 2.1.3.0. I will also verify that it works on Linux, but sadly don&rsquo;t have a way to verify Windows at this time. There isn&rsquo;t anything too complicated here so I have some confidence that it should work across platforms fairly easily.</p>
-
 <p>Next, we will need a Kubernetes instance running locally. For Mac and Windows, that is built into the <a href="https://docs.docker.com/docker-for-mac/#kubernetes">Docker for Desktop</a> tool. For Linux, I recommend <a href="https://kubernetes.io/docs/tasks/tools/install-minikube/">Minikube</a>.</p>
-
 <p>That should be all of the base tools you will need. Hopefully those are all fairly easy to install, but if you run into issues, please reach out to me and I&rsquo;ll attempt to help and add notes to this blog post for future visitors.</p>
-
 <h1 id="step-1-a-basic-node-server-running">Step 1: A basic node server running</h1>
-
 <p>First thing first, let&rsquo;s setup our environment with a very basic Node.js <a href="https://expressjs.com">Express</a> server and get it running. Get to a blank directory and run the following command:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&gt; yarn init -y</code></pre></div>
-<p>Next, let&rsquo;s get our <code>Express</code> library. We do that by running the following command:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&gt; yarn add express@4.17.1</code></pre></div>
-<p><strong><em>Rant</em></strong>: Now, if you are familiar with the Node.js ecosystem you may find it very odd that I added a specific version of the express library. First, you should definitely try and lock your packages down to as specific version as you can. Personally, I&rsquo;ve been bitten far too many times by drifting dependencies. Yes, the lock files help this, but it still happens from time to time. So try and lock things down to as specific as possible. I hope you will thank me later, and I&rsquo;m sad that the Node community uses fuzzy versions far too often in my opinion.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&gt; yarn init -y
+</code></pre></div><p>Next, let&rsquo;s get our <code>Express</code> library. We do that by running the following command:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&gt; yarn add express@4.17.1
+</code></pre></div><p><em><strong>Rant</strong></em>: Now, if you are familiar with the Node.js ecosystem you may find it very odd that I added a specific version of the express library. First, you should definitely try and lock your packages down to as specific version as you can. Personally, I&rsquo;ve been bitten far too many times by drifting dependencies. Yes, the lock files help this, but it still happens from time to time. So try and lock things down to as specific as possible. I hope you will thank me later, and I&rsquo;m sad that the Node community uses fuzzy versions far too often in my opinion.</p>
 <p>This should install the <code>Express</code> library and create a <code>yarn.lock</code> file and a <code>node_modules</code> folder with all the files needed for that library. Now that we have <code>Express</code>, let&rsquo;s create a very simple server. Here is what you want in the file <code>index.js</code>:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">express</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;express&#39;</span>);
 
@@ -93,16 +83,12 @@
 <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#39;/&#39;</span>, (<span style="color:#a6e22e">request</span>, <span style="color:#a6e22e">response</span>) =&gt; <span style="color:#a6e22e">response</span>.<span style="color:#a6e22e">send</span>(<span style="color:#e6db74">&#39;Hello World&#39;</span>));
 
 <span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">listen</span>(<span style="color:#ae81ff">8080</span>, () =&gt; <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#39;Running server&#39;</span>));
-</code></pre></div>
-<p>Let&rsquo;s go ahead and run this file by running the following in a command prompt: <code>node index.js</code>. You should get the <code>Running server</code> output on the console and then you can visit <a href="http://localhost:8080">http://localhost:8080</a> and see the <code>Hello World</code> text in the web browser. If you do, congratulations! We have a very simple web server up and running. If not, double check that you have the package installed correctly, and that your <code>index.js</code> is in the same folder as the <code>package.json</code> and <code>node_modules</code> folder. Please reach out if you need help getting past this step so I can help troubleshooting steps.</p>
-
+</code></pre></div><p>Let&rsquo;s go ahead and run this file by running the following in a command prompt: <code>node index.js</code>. You should get the <code>Running server</code> output on the console and then you can visit <a href="http://localhost:8080">http://localhost:8080</a> and see the <code>Hello World</code> text in the web browser. If you do, congratulations! We have a very simple web server up and running. If not, double check that you have the package installed correctly, and that your <code>index.js</code> is in the same folder as the <code>package.json</code> and <code>node_modules</code> folder. Please reach out if you need help getting past this step so I can help troubleshooting steps.</p>
 <h1 id="step-2-dockerize">Step 2: Dockerize</h1>
-
 <p>Now that we have some working code, let&rsquo;s go ahead and get this application stuffed into a Docker container. Create a file named <code>Dockerfile</code> and put this inside of it:</p>
-
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -136,42 +122,25 @@
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">CMD</span> node index.js</code></pre></td></tr></table>
 </div>
 </div>
-
 <p>Let&rsquo;s go through this line by line to understand what we are doing:</p>
-
 <p><em>Line 1:</em> Very first thing you do in a Dockerfile is define where the starting point is. For us, we are going to use the Node with our locked in version. Now, something you may not be familiar with is the <code>as builder</code>. We are going to use what is called a <a href="https://docs.docker.com/develop/develop-images/multistage-build/">multi-stage build</a>. This is slightly overkill for our example, but this is a framework for future work. We are going to use a builder that will build up our application. Then we will copy over the smallest amount of bits we absolutely need for a production system. This way we have the smallest image we need to ship into production. Also from a security perspective, we are shipping the smallest amount of thing so our foot print is as small as possible.</p>
-
 <p><em>Line 3:</em> The <code>[WORKDIR](https://docs.docker.com/engine/reference/builder/#workdir)</code> command sets our default working from and also sets where we are currently working from. We are going to use a folder at the root called <code>build</code> and work from there</p>
-
 <p><em>Line 4:</em> First we are copying over everything into our Docker container with a neat little trick of <code>COPY . .</code>. Now, this may look funny so let me explain what kind of magic this is doing. Remember that we are asking the Docker system to copy things into the Docker environment. So the first parameter in <code>COPY</code> is referencing from the filesystem relative to the <code>Dockerfile</code>. The second parameter is referencing in relation to where in the Docker container it should put those files. For us, we are asking to copy everything from our project, into the Docker container. It&rsquo;s a neat trick I employ instead of trying to copy different folders. If I need to exclude things, you will use the <code>[.dockerignore](https://docs.docker.com/engine/reference/builder/#dockerignore-file)</code> file.</p>
-
 <p><em>Line 5-6:</em> Now, this looks VERY odd, but just hang in there with me. First we use <code>yarn install</code> to get all of the dependencies. While, yes, the very next line we do <code>yarn install --production</code>, I do this for a good reason. More likely then not, you will want a build step to do something. Either packing, compiling, transpiling, take your pick. You can add any step in between those two <code>yarn install</code> commands to get the right build system setup that you need.</p>
-
 <p>Now that we have a docker image, let&rsquo;s just go through and test this docker image and make sure things work just like they did in the last step. First, let&rsquo;s build the docker image by running <code>docker build . -t myimage</code>. The <code>-t myimage</code> tags the image with a name we can easily use.</p>
-
 <p>To run the image you just built run <code>docker run --rm -it -p 8080:8080 myimage</code>. You should be able to hit <a href="http://localhost8080">http://localhost:8080</a> and get the same <code>Hello World</code> text like you did in the last time. hit <code>ctrl+c</code> to stop the image.</p>
-
 <h1 id="step-3-pushing-a-docker-image-and-prep-work-for-kubernetes">Step 3: Pushing a docker image and prep work for kubernetes</h1>
-
 <p>In this tutorial, I am going to assume you have a kubernetes instance up and running somewhere. If you don&rsquo;t, you can either use <a href="https://www.docker.com/blog/kubernetes-is-now-available-in-docker-desktop-stable-channel/">Docker for Desktop</a> which has Kubernetes built in for both Mac and Windows. Or, you can use <a href="https://github.com/kubernetes/minikube">minikube</a>.</p>
-
 <p>No matter where you have it running. This tutorial will assume you have <code>kubectl</code> pointed to a running Kubernetes instance and that you also have a registry you can upload your docker image.</p>
-
 <p>Let me actually go into detail a little bit about that last thing. We need to push the Docker image to a registry for your Kubernetes instance to pull down. Now, there a wide range of place you can do that. And that require a wide variety of different methods to do it. I am going to assume that you can <code>docker push</code> some kind of image somewhere and that is accessible to your Kubernetes cluster. If you and running the Docker for Desktop tool, a <code>docker build</code> will suffice. If you are running Minikube, you will need to <a href="https://minikube.sigs.k8s.io/docs/tasks/docker_daemon/">reuse the Docker daemon</a>. If you are running a cluster in the cloud somewhere, you will have to make sure that <a href="https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/">Kubernetes is setup to pull from that registry</a>.</p>
-
 <h1 id="step-4-deploying-that-image-to-kubernetes">Step 4: Deploying that image to Kubernetes</h1>
-
 <p>With your image now ready to deploy, lets go through what that would require. For this tutorial we are going to create a <a href="https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/">deployment</a> and a <a href="https://kubernetes.io/docs/concepts/services-networking/service/">service</a>.</p>
-
 <p>A deployment is a Kubernetes object that defines how to create &ldquo;<a href="https://kubernetes.io/docs/concepts/workloads/pods/pod/">pods</a>&rdquo;. A pod is a single (but can be multiple) runner Docker instance. A deployment controls how many pods are currently running and has all of the logic built into making sure there are enough pods to satisfy your requirements. It also helps control roll outs as you update your image. This means that as you roll out a new image, it will bring a new pod up, make sure the pod is running, and then kill off old pods in a controlled manner. Deployments are usually your bread and butter, but they aren&rsquo;t the only objects that control pods. There are a <a href="https://kubernetes.io/docs/concepts/architecture/controller/">few different types</a> of controllers out there but this tutorial will only be focused on the deployment variety.</p>
-
 <p>So, if a deployment controls whats running inside of Kubernetes, how do we expose that pod to network traffic? Like maybe public internet traffic? That is where services come in. A service is a Kubernetes object that controls how network connections are made to the pods. A service defines which ports are open and are connected, and whether the pods should be exposed internally to the Kubernetes instance or externally. Services can also do <a href="https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer">load balancing</a> if you desire.</p>
-
 <p>Now, while this glossed over a lot of details, I think this should make you dangerous enough to start with. Let&rsquo;s look at how a deployment and service object are created and deployed to Kubernetes now. Let&rsquo;s take a look at this file:</p>
-
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -210,90 +179,71 @@
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml">---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: my-app
-  labels:
-    app: my-app
-spec:
-  replicas: <span style="color:#ae81ff">3</span>
-  selector:
-    matchLabels:
-      app: my-app
-  template:
-    metadata:
-      labels:
-        app: my-app
-    spec:
-      containers:
-      - name: my-app
-        image: myimage
-        imagePullPolicy: Never
-        ports:
-        - containerPort: <span style="color:#ae81ff">8080</span>
+<span style="color:#66d9ef">apiVersion</span>: apps/v1
+<span style="color:#66d9ef">kind</span>: Deployment
+<span style="color:#66d9ef">metadata</span>:
+  <span style="color:#66d9ef">name</span>: my-app
+  <span style="color:#66d9ef">labels</span>:
+    <span style="color:#66d9ef">app</span>: my-app
+<span style="color:#66d9ef">spec</span>:
+  <span style="color:#66d9ef">replicas</span>: <span style="color:#ae81ff">3</span>
+  <span style="color:#66d9ef">selector</span>:
+    <span style="color:#66d9ef">matchLabels</span>:
+      <span style="color:#66d9ef">app</span>: my-app
+  <span style="color:#66d9ef">template</span>:
+    <span style="color:#66d9ef">metadata</span>:
+      <span style="color:#66d9ef">labels</span>:
+        <span style="color:#66d9ef">app</span>: my-app
+    <span style="color:#66d9ef">spec</span>:
+      <span style="color:#66d9ef">containers</span>:
+      - <span style="color:#66d9ef">name</span>: my-app
+        <span style="color:#66d9ef">image</span>: myimage
+        <span style="color:#66d9ef">imagePullPolicy</span>: Never
+        <span style="color:#66d9ef">ports</span>:
+        - <span style="color:#66d9ef">containerPort</span>: <span style="color:#ae81ff">8080</span>
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: my-service
-spec:
-  selector:
-    app: my-app
-  type: LoadBalancer
-  ports:
-    - protocol: TCP
-      port: <span style="color:#ae81ff">8080</span>
-      targetPort: <span style="color:#ae81ff">8080</span></code></pre></td></tr></table>
+<span style="color:#66d9ef">apiVersion</span>: v1
+<span style="color:#66d9ef">kind</span>: Service
+<span style="color:#66d9ef">metadata</span>:
+  <span style="color:#66d9ef">name</span>: my-service
+<span style="color:#66d9ef">spec</span>:
+  <span style="color:#66d9ef">selector</span>:
+    <span style="color:#66d9ef">app</span>: my-app
+  <span style="color:#66d9ef">type</span>: LoadBalancer
+  <span style="color:#66d9ef">ports</span>:
+    - <span style="color:#66d9ef">protocol</span>: TCP
+      <span style="color:#66d9ef">port</span>: <span style="color:#ae81ff">8080</span>
+      <span style="color:#66d9ef">targetPort</span>: <span style="color:#ae81ff">8080</span></code></pre></td></tr></table>
 </div>
 </div>
-
 <p>Holy crap batman thats alot! Let&rsquo;s walk through what all of this means.</p>
-
 <p><em>Line 1 &amp; 24</em>: For this example I put both objects inside of one file. Not always a normal thing todo, but its an option. The <code>---</code> is a YAML file separator for multiple YAML objects inside of a file. Just want to point this out first if you see these files separated in the wild. Thats fine, I just wanted to give you one file to play with instead of multiple.</p>
-
 <p><em>Line 2, 3, 25 &amp; 26</em>: This describe the type of Kubernetes object. There are two parts to this. The <code>apiVersion</code>, and the <code>kind</code> of object. These set of properties let&rsquo;s Kubernetes define a whole host of options and let&rsquo;s them version out behavior for certain objects. You can find which objects are support by running <code>kubectl api-resources</code> and the versions of those with <code>kubectl api-versions</code>. The resources list which API group is used, which you cross-reference to which version you should use. If the resource is listed blank, its part of &ldquo;core&rdquo; which is usually just <code>v1</code>. You usually don&rsquo;t fiddle with this much, and just copy from project to project. But its better to be aware of why this is here then just blindly copying it.</p>
-
 <p><em>Line 4 - 7</em>: This section describes the metadata for the deployment. Metadata is just that, information about the object. For a deployment there are two main parts, a <code>name</code> which is exactly that, and is required. Then some kind of <code>label</code>. The label is important because this gives you the ability to &ldquo;select&rdquo; this deployment depending on what kind of values you give the object. This will become important later on in our service.</p>
-
 <p><em>Line 8</em>: This starts the meat of the deployment object, the <code>spec</code> or specification of what you want to deploy.</p>
-
 <p><em>Line 9</em>: The <code>replicas</code> is the number of instances you want running.</p>
-
 <p><em>Line 10 - 12</em>: This section describes what pods the deployment controls. Usually this means you create a selector that has the same matching labels as your <code>template</code> section. I personally haven&rsquo;t come across a case where this didn&rsquo;t match up with what I had in the <code>template</code> section, but I&rsquo;m sure there are cases out there.</p>
-
 <p><em>Line 13</em>: This is the start of the <code>template</code> section. The template section will describe what each pod will have. This includes the image of the container, along with any environment variables, files, etc that are needed to run that pod.</p>
-
 <p><em>Line 14 - 16</em>: This section contains the <code>metadata</code> for each pod that is run. Again, usually this just contains the a label that has information for your selector in the above section.</p>
-
 <p><em>Line 17</em>: This defines the <code>spec</code> for a pod. In this example we will have only 1 container, but this is the section we would add information for an <a href="https://kubernetes.io/docs/concepts/workloads/pods/init-containers/"><code>initContainer</code></a> or <a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/#how-pods-manage-multiple-containers">side car containers</a>.</p>
-
 <p><em>Line 18 - 23</em>: This is the meat of the pod. We define a <code>name</code>, a <code>image</code>, and the <code>ports</code> that are exposed. The name can be whatever you want, it doesn&rsquo;t necessarily have to match the deployment name, but usually does for making life easier later. The <code>image</code> is the location of the docker image. In this example I am assuming that you are using the Docker for Desktop tool, which means we can give it the same name as the last step (<code>myimage</code>). I also added a <code>imagePullPolicy</code> because the Kubernetes instance inside of that tool should not try and reach out to the internet for this image. I would recommend <a href="https://kubernetes.io/docs/concepts/containers/images/#updating-images">reading up on which image pull policy</a> is right for your situation. We list the ports that are exposed next. This isn&rsquo;t completely necessarily but usually added for documentation proposes.</p>
-
 <p><em>Line 29</em>: This section defines our service and how it operates. Let&rsquo;s dig into this section now.</p>
-
 <p><em>Line 30 - 31</em>: This defines what pods should be exposed through this service. This usually matches very closely to what the deployment had in its selector as well.</p>
-
 <p><em>Line 32</em>: Since we want to expose this service we want to put a <code>type</code> on it. There are a <a href="https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types">couple of types</a>, and the one we are interested in is the <code>LoadBalancer</code>. This is because we want to expose this service outside of Kubernetes, and that requires a load balancer for that.</p>
-
 <p><em>Line 33 - 36</em>: This defines the ports that are going to be exposed from this service. For our example, we are going to take the pods port 8080 (<code>targetPort</code>) and expose it to the outside world on that same port 8080 (<code>port</code>). We could have exposed it on port 80 if we wanted too. But for this instance, we just went for the easy route of aligning those numbers up.</p>
-
 <p>Phew, that is a lot. So what should I do with all of this now? Well, let&rsquo;s deploy it. To do that we would run <code>kubectl apply -f deploy.yaml</code>. This of courses assumes that all of the above is in a file called <code>deploy.yaml</code>. Kubectl would then submit that file to Kubernetes and the magic starts to happen on creating the pods. To see your pods up and running we would run <code>kubectl get pods</code> and <em>hopefully</em> you would see something like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&gt; kubectl get pods
 NAME                    READY   STATUS        RESTARTS   AGE
-my-app-bb697dc4-q6vl7   <span style="color:#ae81ff">1</span>/1     Running       <span style="color:#ae81ff">0</span>          14s
-my-app-bb697dc4-qpjgf   <span style="color:#ae81ff">1</span>/1     Running       <span style="color:#ae81ff">0</span>          14s
-my-app-bb697dc4-vsxcv   <span style="color:#ae81ff">1</span>/1     Running       <span style="color:#ae81ff">0</span>          14s</code></pre></div>
-<p>As you can see, you see the <code>name</code> attribute come through. Along with a deployment number (<code>bb697dc4</code> in this example) and a pod number (<code>q6vl7</code>, <code>qpjgf</code>, and <code>vsxcv</code> in this example).</p>
-
+my-app-bb697dc4-q6vl7   1/1     Running       <span style="color:#ae81ff">0</span>          14s
+my-app-bb697dc4-qpjgf   1/1     Running       <span style="color:#ae81ff">0</span>          14s
+my-app-bb697dc4-vsxcv   1/1     Running       <span style="color:#ae81ff">0</span>          14s
+</code></pre></div><p>As you can see, you see the <code>name</code> attribute come through. Along with a deployment number (<code>bb697dc4</code> in this example) and a pod number (<code>q6vl7</code>, <code>qpjgf</code>, and <code>vsxcv</code> in this example).</p>
 <p>If everything is running, we should then be able to hit the service. To view the status of the service we would run <code>kubectl get service</code> and see something like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">&gt; kubectl get service
 NAME         TYPE           CLUSTER-IP      EXTERNAL-IP   PORT<span style="color:#f92672">(</span>S<span style="color:#f92672">)</span>          AGE
-my-service   LoadBalancer   <span style="color:#ae81ff">10</span>.106.118.92   localhost     <span style="color:#ae81ff">8080</span>:32361/TCP   44m</code></pre></div>
-<p>If we hit that <code>External-IP</code> with the port, we should see the same <code>Hello World</code> we saw in the above 2 examples.</p>
-
+my-service   LoadBalancer   10.106.118.92   localhost     8080:32361/TCP   44m
+</code></pre></div><p>If we hit that <code>External-IP</code> with the port, we should see the same <code>Hello World</code> we saw in the above 2 examples.</p>
 <h1 id="conclusion">Conclusion</h1>
-
 <p>Well, we made it! I know there is a lot in here, and there is definitely a lot more, but hopefully this gives you enough pieces that you can start putting your own software together that can run on Kubernetes. Always feel free to reach out to me if you have question or comments.</p>
 
   </section>
@@ -303,6 +253,7 @@ my-service   LoadBalancer   <span style="color:#ae81ff">10</span>.106.118.92   l
       <div class="c-pagination__ctrl">
         <div class="c-pagination__newer">
           
+          <a href="https://blog.baens.net/posts/terraform-kubernetes-secret/">Newer</a>
           
         </div>
         <div class="c-pagination__older">
@@ -392,7 +343,7 @@ my-service   LoadBalancer   <span style="color:#ae81ff">10</span>.106.118.92   l
           
         
         &nbsp;&bull;&nbsp;
-        2019
+        2020
 
         
           &nbsp;&bull;&nbsp;

@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  <meta name="generator" content="Hugo 0.72.0" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   
   
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
@@ -64,12 +64,10 @@
   
   <section id="js-article" class="p-article__body">
     <p>This blog post will expand on a previous blog post that sets up a <a href="https://blog.baens.net/posts/setting-up-cos-on-gcp/">Container-Optimized OS in Google Cloud</a>. But instead of doing all the commands manually, here is what it would take to do this with <a href="https://www.terraform.io">Terraform</a>. I won&rsquo;t go into exactly what Terraform is or the benefits here. But I would highly recommend checking it out and using it to manage your cloud resources. This blog will focus on the Terraform file that would replicate the previous blog post functionality.</p>
-
 <p>Let&rsquo;s see what the terraform file would look like:</p>
-
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -211,13 +209,9 @@ output <span style="color:#e6db74">&#34;address&#34;</span> {
 }</code></pre></td></tr></table>
 </div>
 </div>
-
 <p>There isn&rsquo;t too much magic in there and a fairly straight forward GCP terraform configuration. As you may notice, I concentrated on just the compute instance and the firewall rules. This doesn&rsquo;t actually create the Google Cloud project, and actually assumes you already have one up and running.</p>
-
 <p>The magic happens in blocks at line 19 and line 50. Line 19 slurps up the template file and does string replacements with the <code>vars</code> defined in the corresponding block. That rendered template file is then attached to the correct metadata <code>user-data</code> variable.</p>
-
 <p>Now that we have all of this, how do we run this? Grab the <a href="https://github.com/baens/code-examples-blog.baens.net/tree/cos-gcp-with-terraform">code in this repository</a> to help you run it. After that, make sure to use Terraform 0.11 for this post (sorry, haven&rsquo;t upgraded things to 0.12 yet). Once that is done, go ahead and run <code>terraform init</code> and make sure things install ok.</p>
-
 <p>Now that is done, we could go ahead and try and use <code>terraform plan</code>. But that is going to get annoying fast to keep getting asked all the different variables. Let&rsquo;s go ahead and take the <code>terraform.tfvars.tmpl</code>, copy that over to <code>terraform.tfvars</code> and fill out each variable. Then go ahead and run <code>terraform plan</code> and check that things are going to work out. If that plan looks out, go ahead and run <code>terraform apply</code>. With that, things should be created and then you can view your instance at the outputted IP address.</p>
 
   </section>
@@ -317,7 +311,7 @@ output <span style="color:#e6db74">&#34;address&#34;</span> {
           
         
         &nbsp;&bull;&nbsp;
-        2019
+        2020
 
         
           &nbsp;&bull;&nbsp;

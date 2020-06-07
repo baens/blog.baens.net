@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  <meta name="generator" content="Hugo 0.72.0" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   
   
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
@@ -63,16 +63,10 @@
   </header>
   
   <section id="js-article" class="p-article__body">
-    
-
-<p>I have a <a href="https://blog.baens.net/posts/step-by-step-kotlin-jaxrs-hello-world/">blog post</a> about setting up a JAX-RS with Kotlin and one thing I neglected to show was how to test. So, let&rsquo;s go back and fix this. For this, I will be using <a href="https://junit.org/junit5/">JUnit 5</a> for the test runner, <a href="http://joel-costigliola.github.io/assertj/">AssertJ</a> as the assertion library, and <a href="http://site.mockito.org/">Mockito</a> as the mocking framework.</p>
-
+    <p>I have a <a href="https://blog.baens.net/posts/step-by-step-kotlin-jaxrs-hello-world/">blog post</a> about setting up a JAX-RS with Kotlin and one thing I neglected to show was how to test. So, let&rsquo;s go back and fix this. For this, I will be using <a href="https://junit.org/junit5/">JUnit 5</a> for the test runner, <a href="http://joel-costigliola.github.io/assertj/">AssertJ</a> as the assertion library, and <a href="http://site.mockito.org/">Mockito</a> as the mocking framework.</p>
 <p>Let&rsquo;s go over quickly what tests I&rsquo;ve found valuable as I&rsquo;ve created JAX-RS services. Well, in reality, there&rsquo;s only two: one that exercises the HTTP interface (so, &ldquo;integration test&rdquo;) and one that tests the class and methods in isolation (so, &ldquo;unit tests&rdquo;). I find it more valuable to tell which parts of the system are being exercised in the tests rather than trying to identify what type of common test level they are at. Just a weird quirk, as you will see I have plenty of them.</p>
-
 <h1 id="setting-up-the-dependencies-in-gradle">Setting up the dependencies in gradle</h1>
-
 <p>First, we need to make sure we are on gradle 4.6 or greater. I personally use the wrapper version, but just verify that you have it somehow. To get that specific wrapper version, you can run <code>gradle wrapper --gradle-version 4.6</code> and then all things should be good there.</p>
-
 <p>For the actual code dependencies, here is what you will need in the <code>build.gradle</code> file:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle"><span style="color:#66d9ef">def</span> junitVersion <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;5.1.0&#34;</span>
 
@@ -93,35 +87,27 @@ dependencies <span style="color:#f92672">{</span>
     testCompile <span style="color:#e6db74">&#39;org.mockito:mockito-junit-jupiter:2.18.3&#39;</span>
     testCompile <span style="color:#e6db74">&#39;com.nhaarman:mockito-kotlin:1.5.0&#39;</span>
     
-<span style="color:#f92672">}</span></code></pre></div>
-<p>Kind of messy isn&rsquo;t it? So a note on some of these. Any of the <code>org.junit</code> ones are the core JUnit libraries you include for JUnit 5. We&rsquo;ve include the <code>junit-vintage-engine</code> because for our tests which exercise the HTTP tests are still based upon the older JUnit 4 tests from the <code>jersey-test-framework-provider</code>. We will get into that more later.</p>
-
+<span style="color:#f92672">}</span>
+</code></pre></div><p>Kind of messy isn&rsquo;t it? So a note on some of these. Any of the <code>org.junit</code> ones are the core JUnit libraries you include for JUnit 5. We&rsquo;ve include the <code>junit-vintage-engine</code> because for our tests which exercise the HTTP tests are still based upon the older JUnit 4 tests from the <code>jersey-test-framework-provider</code>. We will get into that more later.</p>
 <p>I&rsquo;ve included <a href="http://joel-costigliola.github.io/assertj/">AssertJ</a> as the assertion library because I like the syntax better than the out of the box JUnit 5 style.</p>
-
 <p><a href="http://site.mockito.org/">Mockito</a> is the mocking framework, along with a few nice to have from <code>mockito-kotlin</code> that turn the <code>any()</code> option into an actual instance instead of a <code>null</code> object. And <code>mockito-junit-jupiter</code> which allows us to run Mockito with JUnit 5.</p>
-
 <h1 id="setting-up-the-structure">Setting up the structure</h1>
-
 <p>First, let&rsquo;s do a little bit of work to setup the inversion of control system that is used the JAX-RS version I used (Jersey), which happens to be H2. We are going to create a place we can inject bindings and determine if these are test bindings, or if they are production bindings. This gives us a layer of control of which systems to use and makes it easier for testing.</p>
-
 <p>A basic binding implementation for H2 looks like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Bindings</span> : AbstractBinder() {
     <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">configure</span>() {
         <span style="color:#75715e">// bind(&lt;implementation class&gt;).to(&lt;interface&gt;)
 </span><span style="color:#75715e"></span>    }
-}</code></pre></div>
-<p>This is where we will house all of our bindings inside of that <code>configure</code> method. We will get into more of what that looks like a little bit later.</p>
-
+}
+</code></pre></div><p>This is where we will house all of our bindings inside of that <code>configure</code> method. We will get into more of what that looks like a little bit later.</p>
 <p>Now, let&rsquo;s actually get something useful. Let&rsquo;s create an interface that will hand back a list of data. So, something like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">HelloJson</span>(<span style="color:#66d9ef">val</span> prop1: Int, <span style="color:#66d9ef">val</span> prop2: String)
 
 <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">DataService</span> {
     <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">all</span>() : List&lt;HelloJson&gt;
-}</code></pre></div>
-<p>Nothing fancy, just a method that would give us back a list of data objects.</p>
-
+}
+</code></pre></div><p>Nothing fancy, just a method that would give us back a list of data objects.</p>
 <h1 id="notes-on-how-to-make-intellij-work-with-this">Notes on how to make IntelliJ work with this</h1>
-
 <p>So, IntelliJ doesn&rsquo;t like the source along side the tests files. And honestly, I&rsquo;ve found that to be a much better project structure in every language I&rsquo;ved used. So, to make this work (though very kludgy) here is the special stuff you need to add to the <code>build.gradle</code> file:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-gradle" data-lang="gradle">apply plugin: <span style="color:#e6db74">&#39;idea&#39;</span>
 
@@ -133,11 +119,9 @@ dependencies <span style="color:#f92672">{</span>
     module <span style="color:#f92672">{</span>
         scopes<span style="color:#f92672">.</span><span style="color:#a6e22e">COMPILE</span><span style="color:#f92672">.</span><span style="color:#a6e22e">plus</span> <span style="color:#f92672">+=</span> <span style="color:#f92672">[</span> configurations<span style="color:#f92672">.</span><span style="color:#a6e22e">testCompile</span> <span style="color:#f92672">]</span>
     <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span></code></pre></div>
-<p>This is intended only for IntelliJ. I will try and test Eclipse here soon and report back but I&rsquo;ve honestly haven&rsquo;t touched that in years.</p>
-
+<span style="color:#f92672">}</span>
+</code></pre></div><p>This is intended only for IntelliJ. I will try and test Eclipse here soon and report back but I&rsquo;ve honestly haven&rsquo;t touched that in years.</p>
 <h1 id="http-tests">HTTP Tests</h1>
-
 <p>One of the very first tests I write when creating end points is that I can get a 200 back from the end point and get JSON back as the content-type. These tests will be my happy path test, so it should always pass. As requirements grow for this end point I will go back and add things that may be required to make this test pass by default. This is what these tests may look like:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">class</span> <span style="color:#960050;background-color:#1e0010">`</span><span style="color:#a6e22e">HTTP</span> HelloWorldResource should<span style="color:#960050;background-color:#1e0010">`</span> : JerseyTest(Application()) {
     @Test
@@ -151,21 +135,16 @@ dependencies <span style="color:#f92672">{</span>
         <span style="color:#66d9ef">val</span> mediaType = target(<span style="color:#e6db74">&#34;helloWorld&#34;</span>).request().<span style="color:#66d9ef">get</span>().mediaType
         assertThat(mediaType).isEqualTo(MediaType.APPLICATION_JSON_TYPE)
     }
-}</code></pre></div>
-<p><em><strong>Note</strong></em>: that <code>@Test</code> annotation is from the JUnit 4 namepsace, the import looks like this: <code>import org.junit.Test</code>. If you don&rsquo;t have this and instead use the newer JUnit 5 namespace, the test will not run. That is because the <code>JerseyTest</code> base class assumes that certain things run that JUnit 5 doesn&rsquo;t do anymore (think static class setup process and such). You can be really neat and rename the JUnit 4 import like this: <code>import org.junit.Test as TestV4</code> to avoid confusion if you put these types of tests in the same file.</p>
-
+}
+</code></pre></div><p><em><strong>Note</strong></em>: that <code>@Test</code> annotation is from the JUnit 4 namepsace, the import looks like this: <code>import org.junit.Test</code>. If you don&rsquo;t have this and instead use the newer JUnit 5 namespace, the test will not run. That is because the <code>JerseyTest</code> base class assumes that certain things run that JUnit 5 doesn&rsquo;t do anymore (think static class setup process and such). You can be really neat and rename the JUnit 4 import like this: <code>import org.junit.Test as TestV4</code> to avoid confusion if you put these types of tests in the same file.</p>
 <p>As you can see, this test isn&rsquo;t that horrible. It is fairly straight forward and the boilerplate around the test isn&rsquo;t bad. Let&rsquo;s go into a more complicated example with bindings.</p>
-
 <h1 id="setting-up-a-null-binding-as-your-first-implementation">Setting up a null binding as your first implementation</h1>
-
 <p>When I start adding layers to my application, I usually start with drilling down from my &ldquo;upper&rdquo; layers to the &ldquo;lower&rdquo; layers. Because of that I usually don&rsquo;t have an implementation per say to use for testing or for anything much else. I kind of like this approach because I can test out the API to see if I indeed want this abstraction and what kind of behavior I expect. With all of that in mind, usually when I create an interface I will always have a <em>null object</em> right along side it. This will make it easier to start off with some default behavior and makes it easier to test the system down the road.</p>
-
 <p>For example, a the null object for the <code>DataService</code> defined above may look like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">NullDataService</span> : DataService {
     <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">all</span>(): List&lt;HelloJson&gt; = emptyList()
-}</code></pre></div>
-<h1 id="method-level-testing">Method level testing</h1>
-
+}
+</code></pre></div><h1 id="method-level-testing">Method level testing</h1>
 <p>Now that we have our interface and it&rsquo;s null object, let&rsquo;s say we need to add functionality to our <code>helloWorld</code> method so that it returns the data from this service. With a TDD approach, the first test maybe will just check that the method returns the same number of items. The next test may ensure that we actually have an item contained in the returning list. These tests are fairly straight forward so let&rsquo;s look at the code for it:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin">@ExtendWith(MockitoExtension<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>)
 <span style="color:#66d9ef">class</span> <span style="color:#960050;background-color:#1e0010">`</span><span style="color:#a6e22e">HelloWorldResource</span> Should<span style="color:#960050;background-color:#1e0010">`</span> {
@@ -194,13 +173,10 @@ dependencies <span style="color:#f92672">{</span>
 
         assertThat(helloWorldResource.helloWorld()).contains(expectedObject)
     }
-}</code></pre></div>
-<p>Few things to point out here. I am using the <code>MockitoExtension</code> that allows us to reduce on the setup parts of the tests. This allows us to create properties with the <code>@Mock</code> and <code>@InjectMocks</code> annotations. This makes reuse in the test class VERY easy. The <code>lateinit</code> part is because Kotlin really wants classes to show when they will be initialized. This statement flags to the compiler that we will be doing it behind the scenes later and not to worry about things.</p>
-
+}
+</code></pre></div><p>Few things to point out here. I am using the <code>MockitoExtension</code> that allows us to reduce on the setup parts of the tests. This allows us to create properties with the <code>@Mock</code> and <code>@InjectMocks</code> annotations. This makes reuse in the test class VERY easy. The <code>lateinit</code> part is because Kotlin really wants classes to show when they will be initialized. This statement flags to the compiler that we will be doing it behind the scenes later and not to worry about things.</p>
 <p>I&rsquo;ve also added a helper method to make creating test data easier. As you see at the top, we have a <code>createHelloJson</code> function that creates the data object. Then if we want to override different properties, we can easily (as demonstrated in the 2nd test) add just the property we want to override. This allows the objects to have sane defaults, and if that object grows, makes it easy to add more fields without having to change 30 tests.</p>
-
 <h1 id="making-the-http-tests-work-after-we-add-the-dataservice-constructor-dependency">Making the HTTP tests work after we add the DataService constructor dependency</h1>
-
 <p>Now, if you are following along you will notice that the above two tests work just fine, but if you run the HTTP test now, things break. That&rsquo;s because we now require the <code>DataService</code> to be injected at runtime from H2. To fix that we need to make sure we have our bindings correct, so here is what the test binding and injection will look like</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="color:#75715e">// in our Application.kt file
 </span><span style="color:#75715e"></span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TestBindings</span> : AbstractBinder() {
@@ -214,15 +190,11 @@ dependencies <span style="color:#f92672">{</span>
 @Inject <span style="color:#66d9ef">constructor</span>(<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> dataService: DataService)
 
 <span style="color:#75715e">// in our HelloWorldResource.tests.kt file
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">class</span> <span style="color:#960050;background-color:#1e0010">`</span><span style="color:#a6e22e">HTTP</span> HelloWorldResource should<span style="color:#960050;background-color:#1e0010">`</span> : JerseyTest(Application(TestBindings()))</code></pre></div>
-<p>First we needed to add the <code>@Inject</code> property to the constructor of our resource. This will signal to Jersey that this constructor will need outside dependencies and to use H2 to find them. Our dependency is defined in our <code>TestBindings</code> class, with the <code>NullDataService</code> as our default. Then we add that test binding to our <code>JerseyTest</code> creation making this all work.</p>
-
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">class</span> <span style="color:#960050;background-color:#1e0010">`</span><span style="color:#a6e22e">HTTP</span> HelloWorldResource should<span style="color:#960050;background-color:#1e0010">`</span> : JerseyTest(Application(TestBindings()))
+</code></pre></div><p>First we needed to add the <code>@Inject</code> property to the constructor of our resource. This will signal to Jersey that this constructor will need outside dependencies and to use H2 to find them. Our dependency is defined in our <code>TestBindings</code> class, with the <code>NullDataService</code> as our default. Then we add that test binding to our <code>JerseyTest</code> creation making this all work.</p>
 <h1 id="wrapping-up">Wrapping up</h1>
-
 <p>Now, if any of this didn&rsquo;t make sense and you want to see it all put together, go over to the <a href="https://github.com/baens/kotlin-jax-rs-helloworld-with-testing">github repository</a> where this is housed and you should be able to take a look at the full thing working. I&rsquo;ve created a static list implementation of that data service for one to look at what an actual implementation may look like.</p>
-
 <h1 id="bonus-how-to-log-exceptions-in-jersey">Bonus: How to log exceptions in Jersey</h1>
-
 <p>If you check out the code on github, you will notice another class way down in the <code>Application.kt</code> file. This class hooks into Jersey&rsquo;s event system so if a request errors out in an exception, we can observe it. Take note this is just for observing if an exception has happened, not actually doing anything with the request. If we wanted to handle that, we could create a request mapper, but that is outside of the scope of this particular blog post.</p>
 
   </section>
@@ -322,7 +294,7 @@ dependencies <span style="color:#f92672">{</span>
           
         
         &nbsp;&bull;&nbsp;
-        2019
+        2020
 
         
           &nbsp;&bull;&nbsp;

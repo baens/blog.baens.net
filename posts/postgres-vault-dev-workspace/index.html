@@ -28,7 +28,7 @@
   
   
   
-  <meta name="generator" content="Hugo 0.59.1" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
+  <meta name="generator" content="Hugo 0.72.0" /><link rel="stylesheet" href="https://blog.baens.net/css/style.css" />
   
   
   <script type="text/javascript" src="https://blog.baens.net/js/bundle.js"></script>
@@ -63,16 +63,10 @@
   </header>
   
   <section id="js-article" class="p-article__body">
-    
-
-<p>My current line of work has led me to start getting into docker more and more. One of the neat things I&rsquo;ve been getting to play with is using <a href="https://www.postgresql.org/">Postgres</a> as my database and <a href="https://www.vaultproject.io/">Vault</a> for secrets management. I figured it was time to showcase what a basic development workspace looks like to help get someone up and running quickly.</p>
-
+    <p>My current line of work has led me to start getting into docker more and more. One of the neat things I&rsquo;ve been getting to play with is using <a href="https://www.postgresql.org/">Postgres</a> as my database and <a href="https://www.vaultproject.io/">Vault</a> for secrets management. I figured it was time to showcase what a basic development workspace looks like to help get someone up and running quickly.</p>
 <p>I&rsquo;ve hopefully boiled this down into the smallest pieces needed to make things work. This allows a new developer on a project to run <code>docker-compose up</code> which will bring up a working development environment.</p>
-
 <p>I will guide you first through some setup scripts that are needed, then tie them all together in the <code>docker-compose.yml</code> file.</p>
-
 <h1 id="setting-up-postgres-with-ssl">Setting up Postgres with SSL</h1>
-
 <p>One of requirements I&rsquo;ve had to fill is that I need a running Postgres instance with SSL turned on. To create the needed SSL files I&rsquo;ve created this script to create all the necessary files:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/bash
 </span><span style="color:#75715e"></span><span style="color:#75715e"># Creates SSL certificates need for postgres</span>
@@ -103,11 +97,10 @@ $OPENSSL_COMMAND req -new -newkey rsa -keyout client-key.pem -out client-req.pem
 $OPENSSL_COMMAND rsa -in client-key.pem -out client-key.pem -passin pass:abcd
 $OPENSSL_COMMAND x509 -req -in client-req.pem -CA ca.pem -CAkey ca-key.pem -set_serial <span style="color:#ae81ff">03</span> -out client-cert.pem
 
-chmod <span style="color:#ae81ff">0600</span> $OUTPUT_FOLDER/*</code></pre></div>
-<p>This file assumes we are in a subfolder and will be creating a <code>run/ssl-files</code> folder above it and drops all the commands in there. To make things easier and more portable, I&rsquo;m using Docker as the tool to bring in openssl command instead of getting it installed locally.</p>
+chmod <span style="color:#ae81ff">0600</span> $OUTPUT_FOLDER/*
 
+</code></pre></div><p>This file assumes we are in a subfolder and will be creating a <code>run/ssl-files</code> folder above it and drops all the commands in there. To make things easier and more portable, I&rsquo;m using Docker as the tool to bring in openssl command instead of getting it installed locally.</p>
 <h1 id="configuring-postgres">Configuring Postgres</h1>
-
 <p>The next script I have is to configure postgres correctly. This will add those SSL files and make sure only SSL connections are accepted. This looks like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/sh
 </span><span style="color:#75715e"></span>
@@ -124,13 +117,10 @@ cat <span style="color:#e6db74">&lt;&lt;EOM &gt;&gt; ${PGDATA}/postgresql.conf
 </span><span style="color:#e6db74">ssl_cert_file = &#39;/var/ssl/server-cert.pem&#39;
 </span><span style="color:#e6db74">ssl_key_file = &#39;/var/ssl/server-key.pem&#39;
 </span><span style="color:#e6db74">ssl_ca_file = &#39;/var/ssl/ca.pem&#39;
-</span><span style="color:#e6db74">EOM</span></code></pre></div>
-<p>This script is intended to be run inside of the docker setup routine which we will get to in a minute. The <code>pg_hba.conf</code> file is to ensure that only ssl connections are accepted and the <code>postgresql.conf</code> file is adding the SSL settings needed for that.</p>
-
+</span><span style="color:#e6db74">EOM</span>
+</code></pre></div><p>This script is intended to be run inside of the docker setup routine which we will get to in a minute. The <code>pg_hba.conf</code> file is to ensure that only ssl connections are accepted and the <code>postgresql.conf</code> file is adding the SSL settings needed for that.</p>
 <p>This script will be run when we start up postgres and will be configured in our <code>docker-compose.yml</code> file. We will get to that in just a minute.</p>
-
 <h1 id="seeding-vault">Seeding vault</h1>
-
 <p>The next script is related to Vault. This script will start vault then configure vault to be able to create secrets for our database. The script looks like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/sh
 </span><span style="color:#75715e"></span><span style="color:#75715e"># Run a vault dev server and configure that instance for the database</span>
@@ -166,24 +156,17 @@ vault write dbs/roles/mydb-admin <span style="color:#ae81ff">\
 </span><span style="color:#e6db74">                         GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \&#34;{{name}}\&#34;;&#34;</span>
 
 <span style="color:#75715e"># Wait for vault server to finish</span>
-wait</code></pre></div>
-<p>This script is intended to be run when the vault container starts. This means that this script is responsible to ensure the server starts and stays running. Once that is complete, we then write out our configuration using the <code>vault</code> command. After that is all done, we let the script hang with the <code>vault server</code> portion with the <code>wait</code> command. This is because the script is what actually started the server and when this script ends, so will the docker container.</p>
-
+wait
+</code></pre></div><p>This script is intended to be run when the vault container starts. This means that this script is responsible to ensure the server starts and stays running. Once that is complete, we then write out our configuration using the <code>vault</code> command. After that is all done, we let the script hang with the <code>vault server</code> portion with the <code>wait</code> command. This is because the script is what actually started the server and when this script ends, so will the docker container.</p>
 <p>One of the first bits in the script is to take <code>VAULT_TOKEN</code> variable that is passed and make that our dev server token. Now, a Vault token is your key in getting things out of vault. To ensure that we know the key, instead of doing the default behavior of generating a random key, we tell the server which token to use. And to make it even easier, we let the docker container pass us one token through <code>VAULT_TOKEN</code> and we tie that to the <code>VAULT_DEV_ROOT_TOKEN_ID</code> so we don&rsquo;t have to define that twice. And just to be extra clear, <code>VAULT_TOKEN</code> is what a client uses, the <code>VAULT_DEV_ROOT_TOKEN_ID</code> is what the server itself uses. If we didn&rsquo;t provide that dev token, the server would generate a random token that makes it a lot harder to development against. This is the difference between our dev Vault instance and a production one. In dev, we can define that token up front, in production, those are randomly generated for you.</p>
-
 <p>The next interesting bits are the connection and role setup. One quick thing I want to point out that the paths follow a pattern. The name <code>dbs</code> comes from where we enabled the database plugin. There are then 3 sub paths of that, <code>config</code>, <code>roles</code> and <code>creds</code>. The <code>config</code> path is where the configuration to our database is stored. Next we add to the <code>roles</code> part which defines what roles can create credentials to our database with the config. Then there is a <code>creds</code> key that actually creates the credentials when it is read, more on using that later.</p>
-
 <p>To reiterate we store configuration in <code>dbs/config/mydb</code>, we store role information in <code>dbs/roles/mydb-admin</code>. This automatically creates a path at <code>dbs/creds/mydb-admin</code> that we will use later to get our credentials.</p>
-
 <p>The postgres credentials use and management is worth a blog post all together but let me talk about this really quick. With Vault, we are creating temporary roles that will come and go at will. When we use those credentials from Vault to also manage the schema (e.g. creating tables), we need to pay extra close attention on who actually owns those tables. When you create a table, who ever the role is that you are currently working as is the role that will be the owner of said table. Then, your next role will have issues actually accessing that table unless permissions and ownership have been setup correctly. I have a <a href="https://dba.stackexchange.com/q/208649/16141">dba.stackexchange</a> question related this that will have a longer blog post later.</p>
-
 <h1 id="docker-compose-setup">Docker-compose setup</h1>
-
 <p>The <code>docker-compose.yml</code> file that binds all of these together looks like this:</p>
-
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker" data-lang="docker"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -216,7 +199,7 @@ wait</code></pre></div>
 </span><span style="color:#960050;background-color:#1e0010"></span>      - ./run/ssl-files:/var/ssl/<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>      - ./scripts/setup-postgres:/docker-entrypoint-initdb.d/setup.sh<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>    ports:<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>      - <span style="color:#ae81ff">5432</span>:5432<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>      - 5432:5432<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>    environment:<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>      - POSTGRES_USER<span style="color:#f92672">=</span>admin<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>      - POSTGRES_PASSWORD<span style="color:#f92672">=</span>secret<span style="color:#960050;background-color:#1e0010">
@@ -224,7 +207,7 @@ wait</code></pre></div>
 </span><span style="color:#960050;background-color:#1e0010"></span>  vault:<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>      image: vault:0.10.1<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>      ports:<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>        - <span style="color:#ae81ff">8200</span>:8200<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>        - 8200:8200<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>      environment:<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>        - VAULT_TOKEN<span style="color:#f92672">=</span>secret-token<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>        - VAULT_ADDR<span style="color:#f92672">=</span>http://127.0.0.1:8200/<span style="color:#960050;background-color:#1e0010">
@@ -233,30 +216,20 @@ wait</code></pre></div>
 </span><span style="color:#960050;background-color:#1e0010"></span>      command: /setup-and-run.sh</code></pre></td></tr></table>
 </div>
 </div>
-
 <p>Let&rsquo;s step through this line by line.</p>
-
 <p>Line 1 &amp; 2 are just normal Docker compose file format stuff.</p>
-
 <p>The next 3 sections are the 3 different services we will be running. Postgres the database is defined in lines 3 - 13 and the Vault service is defined in 14 - 23.</p>
-
 <p>The <code>database</code> section is a fairly straight forward postgres docker setup. We add the SSL files to the docker container (line 6) and the script to be run on startup (line 7). We also expose the ports to other apps that I am developing can actually hit this when it is running (line 9). The last bits are environment variables to setup the initial database (line 11 - 13). Those last ones you can tweak to what ever you desire, these are just some defaults I&rsquo;ve picked.</p>
-
 <p>The <code>vault</code> section is mostly straight forward. In the environment variables (starting line 20) we have two definitions, one for our token, another one for the address of the running vault instance. The first is the token we use for our dev server as well as accessing that server (remember: we define the token and use it in our script for the dev server). The next variable needs to be defined because by default vault will try and use https. Looks kind of silly that you need to define the local server, but that&rsquo;s alright. The <code>volume</code> section adds our script to the container from our local disk, and then we override the default command to run that script.</p>
-
 <h1 id="actually-using-this">Actually using this</h1>
-
 <p>Alright, we now have all of this crazy stuff, how exactly do I use any of this? Well, let&rsquo;s demonstrate that with running inside of this local project, not connecting any code. Just making sure things are running and that we can demonstrate they are running.</p>
-
 <p>First, how do I start this up? Well run <code>docker-compose up</code>. This brings the whole system up. The whole point of what we did before with the seeding and such is that one command will give you a working system. If you go read through all of the output that gives you, you will see that the database was started and initialized and vault was started and initialize.</p>
-
 <p>Next, let&rsquo;s go ahead and see how to connect to the database. One neat way is we can actually get connected to our running instance and execute <code>psql</code> through that. You can do that by <code>docker-compose exec database psql -U admin -d mydb</code>. If you ran that, you should now be inside of <code>psql</code> prompt that is connect to the database.</p>
-
 <p>However, that isn&rsquo;t the fun part with vault. What if I wanted to try out using the whole pipeline of vault creating a credential, then getting into the database with those credentials? Well, its a bit more complicated but here is a script that goes through that process:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">VAULT_SETTINGS<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>docker-compose exec vault vault read --format<span style="color:#f92672">=</span>json dbs/creds/mydb-admin<span style="color:#66d9ef">)</span>
 VAULT_USERNAME<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>echo $VAULT_SETTINGS | docker run --rm -i colstrom/jq -r <span style="color:#e6db74">&#39;.data.username&#39;</span><span style="color:#66d9ef">)</span>
-docker-compose exec database psql -U $VAULT_USERNAME -d mydb</code></pre></div>
-<p>The first part is capturing a vault token by executing <code>vault read</code> inside of one of the <code>vault</code> container. This will create a JSON object that looks something like this:</p>
+docker-compose exec database psql -U $VAULT_USERNAME -d mydb
+</code></pre></div><p>The first part is capturing a vault token by executing <code>vault read</code> inside of one of the <code>vault</code> container. This will create a JSON object that looks something like this:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
   <span style="color:#f92672">&#34;request_id&#34;</span>: <span style="color:#e6db74">&#34;92b63ef7-9ed1-c669-cb36-16ac8110f7c2&#34;</span>,
   <span style="color:#f92672">&#34;lease_id&#34;</span>: <span style="color:#e6db74">&#34;dbs/creds/mydb-admin/af6bcdaf-b20e-4927-6eff-c5c93aef3e2e&#34;</span>,
@@ -267,13 +240,10 @@ docker-compose exec database psql -U $VAULT_USERNAME -d mydb</code></pre></div>
     <span style="color:#f92672">&#34;username&#34;</span>: <span style="color:#e6db74">&#34;v-token-mydb-adm-29r3ryxwxs3ryrvy9010-1528801793&#34;</span>
   },
   <span style="color:#f92672">&#34;warnings&#34;</span>: <span style="color:#66d9ef">null</span>
-}</code></pre></div>
-<p>As you can see, this gives you a username and password that you could use to login to your postgres instance. This is a temporary credential that will expire after a default of 5 minutes.</p>
-
+}
+</code></pre></div><p>As you can see, this gives you a username and password that you could use to login to your postgres instance. This is a temporary credential that will expire after a default of 5 minutes.</p>
 <p>We take that <code>VAULT_SETTINGS</code> then (using Docker of course!) we extract the username from that JSON Object using the <code>jq</code> command. Notice how you can pipe data into a docker container. This makes docker an extremely useful tool in your toolkit because you can now use it like you would use it for normal Linux commands and create a nice data pipeline.</p>
-
 <p>From there we then login with that username, and we can verify that by running <code>\c</code>.</p>
-
 <p>So there you have it, a vault and postgres development workspace. I have the code over on <a href="https://github.com/baens/docker-vault-postgres-dev-workspace">github</a> if you just want to download it and use it as you need it.</p>
 
   </section>
@@ -373,7 +343,7 @@ docker-compose exec database psql -U $VAULT_USERNAME -d mydb</code></pre></div>
           
         
         &nbsp;&bull;&nbsp;
-        2019
+        2020
 
         
           &nbsp;&bull;&nbsp;
