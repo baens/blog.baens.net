@@ -1,12 +1,12 @@
 ---
-title: Preventing your PVC from being deleted in GKE
+title: Preventing your Kubernetes volume from being deleted in GKE
 ---
 
 # The story
 
 This one totally caught off guard. I have this Kubernetes cluster I managed, and well, one day I was doing my thing. And I noticed that my laptop was low on resources, so I decided to clean things up. Cleared out a few namespaces and everything was good to go. Well, not 3 seconds later, someone pings on a chat channel that their dev environment is gone. Well...crap. I double check my `kubectl` context, and yup, sure enough. I was not connected to my local instance, I was connected to the dev Kubernetes cluster. Oops!
 
-Thankfully this was only dev, and not production or anywhere else important. But it still stood I blew up the cluster, and needed to rebuild it, and quickly. This post isn't how I brought that cluster back online (spoiler: we have tools and such to do that quickly), but the few lessons that came out of that.
+Thankfully this was only dev, and not production or anywhere else important. But it still stood I blew up the cluster, and needed to rebuild it, and quickly. This post isn't how I brought that cluster back online (spoiler: we have tools and such to do that quickly), but how I figured out how to prevent it from happening in the future.
 
 # What are PVCs
 
