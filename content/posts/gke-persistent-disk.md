@@ -10,24 +10,50 @@ Thankfully this was only dev, and not production or anywhere else important. But
 
 # What are PVCs
 
-Let's make sure we are on the same page. If you don't know. Persistent volume claims (PVC) are a way for you to get permentant disk storage in your Kubernetes cluster. This means if your pod dies, or is deleted, you can have your data persist. This is all fine and dandy, but by default. Those PVCs are a namespaced resource. Which means, if you delete the namespace. That resource is also deleted.
+Let's make sure we are on the same page. If you don't know. Persistent volume claims (PVC) are a way for you to get permanent disk storage in your Kubernetes cluster. This means if your pod dies, or is deleted, you can have your data persist. This is all fine and dandy, but by default. Those PVCs are a [namespaced resource](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/#not-all-objects-are-in-a-namespace). Which means, if you delete the namespace. That resource is also deleted.
 
 # Using persistent disks in GKE
 
-To prevent your data from getting lost in the event that the namespace is deleted. You need to attach that data to a disk that lives outside of Kubernetes control. To do this, we will use a disk created in Google cloud, and attach to that disk inside our Kubernetes environment. This is [documented in GKE]() but let me give you the easy steps of getting there:
+To prevent your data from getting lost in the event that the namespace is deleted. You need to attach that data to a disk that lives outside of Kubernetes control. To do this, we will use a disk created in Google cloud, and attach to that disk inside our Kubernetes environment. This is [documented in GKE](https://cloud.google.com/kubernetes-engine/docs/concepts/persistent-volumes) but let me give you the easy steps of getting there:
 
 First, let's create the disk:
 
 ```
-gcloud compute disks create my-disk
+gcloud compute disks create my-disk --type=pd-ssd --size=1G
 ```
 
 Next, let's attach to that disk in a pod:
 
 ```
-
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: demo
+spec:
+  capacity:
+    storage: 1G
+  accessModes:
+    - ReadWriteOnce
+  claimRef:
+    namespace: default
+    name: demo
+  gcePersistentDisk:
+    pdName: my-disk
+    fsType: ext4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: demo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1G
 ```
 
+Lots of stuff right? Some import bits are that we suppify both the `PersistentVolume` and the `PersistentVolumeClaim`. Usually we only had the claim itself. On the volume, the `gcePersistentDisk` identities the name of the disk to attach to, and fail if its not found. Also, the `claimRef` needs to match up with both the namespace and the name for this to be bound correctly. Also, be careful that the storage also lines up correctly, otherwise again, things won't be bound.
 
 # Migrate to use that disk
 
@@ -81,6 +107,62 @@ Fairly straight forward. This will create the disk with a 1G limit. We use the S
 Now that we have the disk ready, we need to redeploy our service back into Kubernetes. But this time, we need to ensure that your PVC attaches to the disk. We will use a manifest like this:
 
 ```
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: demo
+spec:
+  capacity:
+    storage: 1G
+  accessModes:
+    - ReadWriteOnce
+  claimRef:
+    namespace: default
+    name: demo
+  gcePersistentDisk:
+    pdName: my-disk
+    fsType: ext4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: demo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1G
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: demo
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: demo
+    spec:
+      containers:
+        - name: task-pv-container
+          image: nginx
+          ports:
+            - containerPort: 80
+            name: "http-server"
+          volumeMounts:
+            - mountPath: "/usr/share/nginx/html"
+            name: task-pv-storage
 ```
 
 If all goes well, all your data is still present and you have no migrated over to a more permanent disk.
