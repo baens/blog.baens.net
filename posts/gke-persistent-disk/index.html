@@ -5,16 +5,16 @@
   <meta name="monetization" content="$ilp.uphold.com/LmbkLpMYDLiH">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
   
-  <title>Setting up a Docker container on a Container-Optimized OS running on the Google Cloud with Terraform</title>
-  <meta property="og:title" content="Setting up a Docker container on a Container-Optimized OS running on the Google Cloud with Terraform" />
-  <meta name="twitter:title" content="Setting up a Docker container on a Container-Optimized OS running on the Google Cloud with Terraform" />
+  <title>Preventing your Kubernetes volume from being deleted in GKE</title>
+  <meta property="og:title" content="Preventing your Kubernetes volume from being deleted in GKE" />
+  <meta name="twitter:title" content="Preventing your Kubernetes volume from being deleted in GKE" />
   
 
   
 
   <meta name="author" content="Erik Lindblom" />
   <meta property="og:site_name" content="Erik Lindblom&#39;s Ramblings" />
-  <meta property="og:url" content="https://blog.baens.net/posts/setting-up-cos-on-gcp-with-terraform/" />
+  <meta property="og:url" content="https://blog.baens.net/posts/gke-persistent-disk/" />
 
   
   <meta name="twitter:card" content="summary" />
@@ -51,12 +51,12 @@
 
 <article class="p-article">
   <header>
-    <h1>Setting up a Docker container on a Container-Optimized OS running on the Google Cloud with Terraform</h1>
+    <h1>Preventing your Kubernetes volume from being deleted in GKE</h1>
     <div>
       <div class="c-time">
         Posted on
-        <time datetime="2019-07-01T00:00:00Z">
-          Jul 1, 2019
+        <time datetime="2020-06-30T00:00:00Z">
+          Jun 30, 2020
         </time>
       </div>
       
@@ -64,156 +64,130 @@
   </header>
   
   <section id="js-article" class="p-article__body">
-    <p>This blog post will expand on a previous blog post that sets up a <a href="https://blog.baens.net/posts/setting-up-cos-on-gcp/">Container-Optimized OS in Google Cloud</a>. But instead of doing all the commands manually, here is what it would take to do this with <a href="https://www.terraform.io">Terraform</a>. I won&rsquo;t go into exactly what Terraform is or the benefits here. But I would highly recommend checking it out and using it to manage your cloud resources. This blog will focus on the Terraform file that would replicate the previous blog post functionality.</p>
-<p>Let&rsquo;s see what the terraform file would look like:</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">68
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">69
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml">provider <span style="color:#e6db74">&#34;google&#34;</span> {
-  version = <span style="color:#e6db74">&#34;2.9.1&#34;</span>
-  project = <span style="color:#e6db74">&#34;${var.project}&#34;</span>
-  zone    = <span style="color:#e6db74">&#34;${var.zone}&#34;</span>
-}
+    <h1 id="the-story">The story</h1>
+<p>This one caught off guard. I have this Kubernetes cluster I managed, and well, one day I was doing my thing. And I noticed that my laptop was low on resources, so I decided to clean things up. Cleared out a few namespaces and everything was good to go. Well, not 3 seconds later, someone pings on a chat channel that their dev environment is gone. Well&hellip;crap. I double-check my <code>kubectl</code> context, and yup, sure enough. I was not connected to my local instance, I was connected to the dev Kubernetes cluster. Oops!</p>
+<p>Thankfully this was only dev, and not production or anywhere else important. But it still stood I blew up the cluster, and needed to rebuild it, and quickly. This post isn&rsquo;t how I brought that cluster back online (spoiler: we have tools and pipelines to do that quickly), but how I figured out preventing this from happening in the future.</p>
+<h1 id="what-are-pvcs">What are PVCs</h1>
+<p>Let&rsquo;s make sure we are on the same page. If you don&rsquo;t know. Persistent volume claims (PVC) are a way for you to get permanent disk storage in your Kubernetes cluster. This means if your pod dies, or is deleted, you can have your data persist. This is all fine and dandy but by default. Those PVCs are a <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/#not-all-objects-are-in-a-namespace">namespaced resource</a>. Which means if you delete the namespace. That resource is also deleted.</p>
+<h1 id="using-persistent-disks-in-gke">Using persistent disks in GKE</h1>
+<p>To prevent your data from getting lost if the namespace is deleted. You need to attach that data to a disk that lives outside of Kubernetes control. To do this, we will use a disk created in Google cloud, and attach to that disk inside our Kubernetes environment. This is <a href="https://cloud.google.com/kubernetes-engine/docs/concepts/persistent-volumes">documented in GKE</a> but let me give you the easy steps of getting there:</p>
+<p>First, let&rsquo;s create the disk:</p>
+<pre><code>gcloud compute disks create my-disk --type=pd-ssd --size=1G
+</code></pre><p>Next, let&rsquo;s attach to that disk in a pod:</p>
+<pre><code>apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: demo
+spec:
+  capacity:
+    storage: 1G
+  accessModes:
+    - ReadWriteOnce
+  claimRef:
+    namespace: default
+    name: demo
+  gcePersistentDisk:
+    pdName: my-disk
+    fsType: ext4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: demo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1G
+</code></pre><p>Lots of stuff right? Some import bits are that we supply both the <code>PersistentVolume</code> and the <code>PersistentVolumeClaim</code>. Usually, we only had the claim itself. On the volume, the <code>gcePersistentDisk</code> identities the name of the disk to attach to, and fail if it not found. Also, the <code>claimRef</code> needs to match up with both the namespace and the name for this to be bound correctly. Also, be careful that the storage also lines up correctly, otherwise again, things won&rsquo;t be bound.</p>
+<h1 id="migrate-to-use-that-disk">Migrate to use that disk</h1>
+<p>So, creating a disk is rather straight forward, but what if you already have a disk and want to migrate over to this? We can do that. All PVCs in GKE already have a disk attached to them. They are just managed outside of the cluster itself. So here is the general workflow you will need to go through to migrate over to something more permanent:</p>
+<ol>
+<li>Scale down your pods</li>
+<li>Take a snapshot of your current disk</li>
+<li>Delete your current deployment</li>
+<li>Create a disk from the snapshot</li>
+<li>Deploy again with the PVC attacked to the disk</li>
+</ol>
+<h1 id="step-scaling-down-the-pods">Step: Scaling down the pods</h1>
+<p>To ensure that all the data is done being written to the disks, and nothing changes the data mid-flight. It is a good idea to make sure all pods that are using the disks are scaled down to 0. If you are using a deployment, this is as easy as <code>kubectl scale --replicas=0 deployment/my-stuff</code>. Then verify that all the pods are gone before proceeding on to the next step.</p>
+<h1 id="step-snapshotting-your-current-disk">Step: Snapshotting your current disk</h1>
+<p>To get us to a new disk, we need to go through and create a snapshot of the data you currently have, to seed the permanent disk. Whats need is that we can actually script this next part out. Here is what this script would look like:</p>
+<pre><code># Capture properties of disk
+VOLUME_NAME=$(kubectl get pvc my-pvc -o=jsonpath='{.spec.volumeName}')
+DISK_NAME=$(gcloud compute disks list --filter=&quot;name~''$VOLUME_NAME''&quot; --format=&quot;value(name)&quot;)
+DISK_ZONE=$(gcloud compute disks list --filter=&quot;name~''$VOLUME_NAME''&quot; --format=&quot;value(zone)&quot;)
 
-resource <span style="color:#e6db74">&#34;google_compute_firewall&#34;</span> <span style="color:#e6db74">&#34;http-traffic&#34;</span> {
-  name    = <span style="color:#e6db74">&#34;allow-http&#34;</span>
-  network = <span style="color:#e6db74">&#34;default&#34;</span>
-
-  allow {
-    protocol = <span style="color:#e6db74">&#34;tcp&#34;</span>
-    ports    = [<span style="color:#e6db74">&#34;80&#34;</span>]
-  }
-
-  target_tags = [<span style="color:#e6db74">&#34;http-traffic&#34;</span>]
-}
-
-resource <span style="color:#e6db74">&#34;google_compute_firewall&#34;</span> <span style="color:#e6db74">&#34;http-ssh&#34;</span> {
-  name    = <span style="color:#e6db74">&#34;allow-ssh&#34;</span>
-  network = <span style="color:#e6db74">&#34;default&#34;</span>
-
-  allow {
-    protocol = <span style="color:#e6db74">&#34;tcp&#34;</span>
-    ports    = [<span style="color:#e6db74">&#34;22&#34;</span>]
-  }
-
-  target_tags = [<span style="color:#e6db74">&#34;ssh-traffic&#34;</span>]
-}
-
-data <span style="color:#e6db74">&#34;template_file&#34;</span> <span style="color:#e6db74">&#34;cloud-init&#34;</span> {
-  template = <span style="color:#e6db74">&#34;${file(&#34;</span>cloud-init.yml.tmpl<span style="color:#e6db74">&#34;)}&#34;</span>
-
-  vars = {
-    registry = <span style="color:#e6db74">&#34;${var.registry}&#34;</span>
-    username = <span style="color:#e6db74">&#34;${var.username}&#34;</span>
-    password = <span style="color:#e6db74">&#34;${var.password}&#34;</span>
-    image    = <span style="color:#e6db74">&#34;${var.image}&#34;</span>
-  }
-}
-
-resource <span style="color:#e6db74">&#34;google_compute_instance&#34;</span> <span style="color:#e6db74">&#34;cos-instnace&#34;</span> {
-  name         = <span style="color:#e6db74">&#34;cos-instance-${substr(md5(file(&#34;</span>cloud-init.yml.tmpl<span style="color:#e6db74">&#34;)),0,10)}&#34;</span>
-  machine_type = <span style="color:#e6db74">&#34;n1-standard-1&#34;</span>
-
-  tags = [<span style="color:#e6db74">&#34;http-traffic&#34;</span>, <span style="color:#e6db74">&#34;ssh-traffic&#34;</span>]
-
-  boot_disk {
-    initialize_params {
-      image = <span style="color:#e6db74">&#34;cos-cloud/cos-73-11647-217-0&#34;</span>
-    }
-  }
-
-  network_interface {
-    network = <span style="color:#e6db74">&#34;default&#34;</span>
-
-    access_config {
-      // this empty block creates a public IP address
-    }
-  }
-
-  metadata {
-    <span style="color:#e6db74">&#34;user-data&#34;</span> = <span style="color:#e6db74">&#34;${data.template_file.cloud-init.rendered}&#34;</span>
-  }
-}
-
-output <span style="color:#e6db74">&#34;address&#34;</span> {
-  value = <span style="color:#e6db74">&#34;${google_compute_instance.cos-instnace.network_interface.0.access_config.0.nat_ip}&#34;</span>
-}</code></pre></td></tr></table>
-</div>
-</div>
-<p>There isn&rsquo;t too much magic in there and a fairly straight forward GCP terraform configuration. As you may notice, I concentrated on just the compute instance and the firewall rules. This doesn&rsquo;t actually create the Google Cloud project, and actually assumes you already have one up and running.</p>
-<p>The magic happens in blocks at line 19 and line 50. Line 19 slurps up the template file and does string replacements with the <code>vars</code> defined in the corresponding block. That rendered template file is then attached to the correct metadata <code>user-data</code> variable.</p>
-<p>Now that we have all of this, how do we run this? Grab the <a href="https://github.com/baens/code-examples-blog.baens.net/tree/cos-gcp-with-terraform">code in this repository</a> to help you run it. After that, make sure to use Terraform 0.11 for this post (sorry, haven&rsquo;t upgraded things to 0.12 yet). Once that is done, go ahead and run <code>terraform init</code> and make sure things install ok.</p>
-<p>Now that is done, we could go ahead and try and use <code>terraform plan</code>. But that is going to get annoying fast to keep getting asked all the different variables. Let&rsquo;s go ahead and take the <code>terraform.tfvars.tmpl</code>, copy that over to <code>terraform.tfvars</code> and fill out each variable. Then go ahead and run <code>terraform plan</code> and check that things are going to work out. If that plan looks out, go ahead and run <code>terraform apply</code>. With that, things should be created and then you can view your instance at the outputted IP address.</p>
+gcloud compute disk snapshot --zone $DISK_ZONE --snapshot-names my-snapshot $DISK_NAME
+</code></pre><p>First, we had to capture data from the PVC. In this example, <code>mv-pvc</code> would be the name of the PVC you create in your cluster. We capture the volume name which is the name of the disk created outside of the cluster.</p>
+<p>Next, we need to capture some information about the disk itself. We need to know the full disk name, along with which zone it was created in.</p>
+<p>From there, we then have all the information we need to create our snapshot <code>my-snapshot</code> (all these names can be tweaked, and are given as examples).</p>
+<h1 id="step-deleting-your-deployment">Step: Deleting your deployment</h1>
+<p>Next, let&rsquo;s go ahead and delete your deployment. If you want a simple one-liner, you can use <code>kubectl</code> to delete everything: <code>kubectl delete all,pvc,pv --all-namespaces -l app=my-app</code>. The label (<code>-l</code>) assumes you have some kind of annotation attached to your resources.</p>
+<h1 id="step-creating-the-disk">Step: Creating the disk</h1>
+<p>Now that we have everything cleaned up, let&rsquo;s create the new disk.</p>
+<pre><code>gcloud compute disks create my-disk --size=1G --source-snapshot=my-snapshot --type=pd-ssd
+</code></pre><p>Fairly straight forward. This will create the disk with a 1G limit. We use the SSD disk type because we are under 100GB for this example. But tweak it for your needs.</p>
+<h1 id="step-deploying-to-the-attached-disk">Step: Deploying to the attached disk</h1>
+<p>Now that we have the disk ready, we need to redeploy our service back into Kubernetes. But this time, we need to ensure that your PVC attaches to the disk. We will use a manifest like this:</p>
+<pre><code>apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: demo
+spec:
+  capacity:
+    storage: 1G
+  accessModes:
+    - ReadWriteOnce
+  claimRef:
+    namespace: default
+    name: demo
+  gcePersistentDisk:
+    pdName: my-disk
+    fsType: ext4
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: demo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1G
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: demo
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: demo
+    spec:
+      containers:
+        - name: task-pv-container
+          image: nginx
+          ports:
+            - containerPort: 80
+            name: &quot;http-server&quot;
+          volumeMounts:
+            - mountPath: &quot;/usr/share/nginx/html&quot;
+            name: task-pv-storage
+</code></pre><p>If all goes well, all your data is still present and you have no migrated over to a more permanent disk.</p>
 
   </section>
   <footer>
@@ -222,12 +196,11 @@ output <span style="color:#e6db74">&#34;address&#34;</span> {
       <div class="c-pagination__ctrl">
         <div class="c-pagination__newer">
           
-          <a href="https://blog.baens.net/posts/step-by-step-nodejs-docker-kubernetes/">Newer</a>
           
         </div>
         <div class="c-pagination__older">
           
-          <a href="https://blog.baens.net/posts/setting-up-cos-on-gcp/">Older</a>
+          <a href="https://blog.baens.net/posts/terraform-kubernetes-secret/">Older</a>
           
         </div>
       </div>
