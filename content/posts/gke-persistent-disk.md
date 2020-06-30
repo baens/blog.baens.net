@@ -1,12 +1,13 @@
 ---
 title: Preventing your Kubernetes volume from being deleted in GKE
+date: 2020-06-30
 ---
 
 # The story
 
 This one caught off guard. I have this Kubernetes cluster I managed, and well, one day I was doing my thing. And I noticed that my laptop was low on resources, so I decided to clean things up. Cleared out a few namespaces and everything was good to go. Well, not 3 seconds later, someone pings on a chat channel that their dev environment is gone. Well...crap. I double-check my `kubectl` context, and yup, sure enough. I was not connected to my local instance, I was connected to the dev Kubernetes cluster. Oops!
 
-Thankfully this was only dev, and not production or anywhere else important. But it still stood I blew up the cluster, and needed to rebuild it, and quickly. This post isn't how I brought that cluster back online (spoiler: we have tools and such to do that quickly), but how I figured out preventing this from happening in the future.
+Thankfully this was only dev, and not production or anywhere else important. But it still stood I blew up the cluster, and needed to rebuild it, and quickly. This post isn't how I brought that cluster back online (spoiler: we have tools and pipelines to do that quickly), but how I figured out preventing this from happening in the future.
 
 # What are PVCs
 
@@ -59,11 +60,11 @@ Lots of stuff right? Some import bits are that we supply both the `PersistentVol
 
 So, creating a disk is rather straight forward, but what if you already have a disk and want to migrate over to this? We can do that. All PVCs in GKE already have a disk attached to them. They are just managed outside of the cluster itself. So here is the general workflow you will need to go through to migrate over to something more permanent:
 
-1. - Scale down your pods
-1. - Take a snapshot of your current disk
-1. - Delete your current deployment
-1. - Create a disk from the snapshot
-1. - Deploy again with the PVC attacked to the disk
+1. Scale down your pods
+1. Take a snapshot of your current disk
+1. Delete your current deployment
+1. Create a disk from the snapshot
+1. Deploy again with the PVC attacked to the disk
 
 # Step: Scaling down the pods
 
